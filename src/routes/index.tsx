@@ -459,7 +459,7 @@ function SalesTab({ year, month, product }: { year: Year; month: Month; product:
                     width={barW}
                     height={h}
                     rx={3}
-                    fill={isHover ? "var(--green)" : "var(--navy)"}
+                    fill={isHover ? "#C7EBF7" : "var(--navy)"}
                   />
                   {/* invisible wider hit area for hover */}
                   <rect
