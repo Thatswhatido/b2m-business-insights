@@ -379,7 +379,8 @@ function buildData(year: Year, month: Month, product: Product) {
 
   return {
     total,
-    months: base,
+    bars,
+    mode,
     employers: employersUniq,
     clients: {
       newClients: { value: String(newClients), delta: mkDelta(1) },
