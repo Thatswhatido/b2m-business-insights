@@ -690,8 +690,9 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
   const labelStride = mode === "monthly" ? 1 : n <= 16 ? 1 : n <= 24 ? 3 : 5;
 
   const peersCount = 40 + Math.floor(rand(seed, 200) * 10);
-  const mkKpi = (k: number, baseMine: number, basePeer: number, suffix = "") => {
-    const mine = Math.round(baseMine * (0.9 + rand(seed, 300 + k) * 0.3));
+  const mkKpi = (k: number, baseMine: number, basePeer: number, suffix = "", scaleMine = true) => {
+    const mineRaw = baseMine * (0.9 + rand(seed, 300 + k) * 0.3) * (scaleMine ? storeMult : 1);
+    const mine = Math.max(1, Math.round(mineRaw));
     const peer = Math.round(basePeer * (0.9 + rand(seed, 400 + k) * 0.3));
     const dMine = (rand(seed, 500 + k) - 0.3) * 30;
     const dPeer = (rand(seed, 600 + k) - 0.4) * 20;
@@ -706,7 +707,7 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
   };
   const newC = mkKpi(1, 45, 38);
   const knownC = mkKpi(2, 145, 132);
-  const basket = mkKpi(3, 15, 19, " EUR");
+  const basket = mkKpi(3, 15, 19, " EUR", false);
 
   return (
     <>
