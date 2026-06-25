@@ -109,13 +109,7 @@ const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ] as const;
-const PRODUCTS = [
-  "All products",
-  "Meal vouchers",
-  "Gift cards",
-  "Eco vouchers",
-  "Wellness",
-] as const;
+const PRODUCTS = ["All products", "Lunch", "Eco"] as const;
 
 type Year = (typeof YEARS)[number];
 type Month = (typeof MONTHS)[number];
