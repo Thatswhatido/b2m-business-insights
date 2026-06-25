@@ -232,11 +232,11 @@ function Dashboard() {
             <div className="tab-badge">B</div>
           </div>
 
-          {tab !== "comparison" && tab !== "segments" && (
+          {tab !== "comparison" && (
             <div className="filter-row">
               <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
               <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
-              {tab !== "sector" && tab !== "forecast" && (
+              {tab !== "sector" && tab !== "forecast" && tab !== "segments" && (
                 <div className="filter-right">
                   <Dropdown
                     value={product}
@@ -262,7 +262,7 @@ function Dashboard() {
           ) : tab === "comparison" ? (
             <ComparisonTab year={year} month={month} store={store} />
           ) : tab === "segments" ? (
-            <SegmentsTab store={store} />
+            <SegmentsTab year={year} month={month} store={store} />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
@@ -1662,13 +1662,9 @@ const SEG_QUARTERS = ["Q1 2026", "Q4 2025", "Q3 2025", "Q2 2025"] as const;
 const SEG_EMPLOYERS = ["All employers", "Top 10 only", "Finance", "Healthcare", "Public sector", "Tech"] as const;
 const SEG_COMPARE = ["vs last quarter", "vs same quarter last year", "vs sector average"] as const;
 
-function SegmentsTab({ store }: { store: Store }) {
-  const [quarter, setQuarter] = useState<(typeof SEG_QUARTERS)[number]>("Q1 2026");
-  const [emp, setEmp] = useState<(typeof SEG_EMPLOYERS)[number]>("All employers");
-  const [cmp, setCmp] = useState<(typeof SEG_COMPARE)[number]>("vs last quarter");
-
+function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: Store }) {
   const storeMult = STORE_WEIGHTS[store];
-  const seed = hash(`seg|${quarter}|${emp}|${cmp}|${store}`);
+  const seed = hash(`seg|${year}|${month}|${store}`);
   const r = (i: number, lo: number, hi: number) => lo + rand(seed, i) * (hi - lo);
 
   const totalSpend = Math.round(r(1, 38000, 46000) * storeMult);
@@ -1716,13 +1712,6 @@ function SegmentsTab({ store }: { store: Store }) {
 
   return (
     <>
-      {/* Local filter row */}
-      <div className="filter-row">
-        <Dropdown value={quarter} options={SEG_QUARTERS} onChange={setQuarter} icon="ti-calendar" />
-        <Dropdown value={emp} options={SEG_EMPLOYERS} onChange={setEmp} icon="ti-building" />
-        <Dropdown value={cmp} options={SEG_COMPARE} onChange={setCmp} icon="ti-arrows-left-right" />
-      </div>
-
       {/* KPIs */}
       <div className="kpi-grid-4">
         <div className="kpi-card">
@@ -1756,7 +1745,7 @@ function SegmentsTab({ store }: { store: Store }) {
         <div className="cmp-card-header">
           <div>
             <p className="cmp-card-title">Spend by employer segment</p>
-            <p className="cmp-card-subtitle">Share of your Pluxee revenue · {quarter}</p>
+            <p className="cmp-card-subtitle">Share of your Pluxee revenue · {month === "All months" ? year : `${month} ${year}`}</p>
           </div>
         </div>
         <div className="seg-donut-layout">
