@@ -1190,10 +1190,11 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
     [xAt(PAST), yAt(nowVal)],
     ...baseFc.map((v, i) => [xAt(PAST + 1 + i), yAt(v + bandHalf(i + 1))] as [number, number]),
   ];
-  const lowerPts: [number, number][] = [
-    ...baseFc.map((v, i) => [xAt(PAST + 1 + i), yAt(v - bandHalf(i + 1))] as [number, number]),
+  const lowerPtsAsc: [number, number][] = [
     [xAt(PAST), yAt(nowVal)],
-  ].reverse();
+    ...baseFc.map((v, i) => [xAt(PAST + 1 + i), yAt(v - bandHalf(i + 1))] as [number, number]),
+  ];
+  const lowerPts: [number, number][] = [...lowerPtsAsc].reverse();
   const bandPath = `${toPath(upperPts)} ${toPath(lowerPts).replace(/^M/, "L")} Z`;
 
   const actualPath = toPath(actualPts);
