@@ -1235,4 +1235,49 @@ const CSS = `
 .info-banner { display: flex; gap: 10px; align-items: flex-start; background: rgba(30,215,96,0.10); border: 0.5px solid rgba(30,215,96,0.30); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 16px; }
 .info-banner i { font-size: 16px; color: var(--green-dark); margin-top: 1px; }
 .info-banner p { margin: 0; font-size: 12.5px; color: var(--navy); line-height: 1.5; }
+
+/* Sector health */
+.sector-banner { display: flex; gap: 14px; align-items: center; padding: 16px 18px; border-radius: var(--radius-lg); margin-bottom: 16px; }
+.sector-banner.danger { background: rgba(208,49,45,0.08); border: 0.5px solid rgba(208,49,45,0.30); }
+.sector-banner-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: #A32D2D; flex-shrink: 0; }
+.sector-banner-icon i { font-size: 20px; }
+.sector-banner-body { flex: 1; }
+.sector-banner-title { font-size: 14px; font-weight: 600; color: #A32D2D; }
+.sector-banner-desc { font-size: 12px; color: #791F1F; margin-top: 2px; }
+.sector-banner-metric { text-align: right; flex-shrink: 0; }
+.sector-banner-value { font-size: 22px; font-weight: 600; color: #A32D2D; line-height: 1.1; }
+.sector-banner-caption { font-size: 11px; color: #791F1F; }
+
+.sector-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.sector-kpi { margin-bottom: 0; padding: 16px 18px; }
+
+.legend-dot-dashed { width: 18px !important; height: 0 !important; border-top: 2px dashed #C0392B; border-radius: 0 !important; margin-right: 5px; vertical-align: middle; }
+
+.sector-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.sector-row { display: grid; grid-template-columns: 110px 1fr 52px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 0.5px solid var(--border); }
+.sector-row:last-child { border-bottom: none; }
+.sector-name { font-size: 12.5px; color: var(--text-primary); }
+.sector-bar-wrap { height: 8px; background: rgba(26,31,60,0.06); border-radius: 999px; overflow: hidden; }
+.sector-bar { height: 100%; border-radius: 999px; }
+.sector-bar.pos { background: var(--green-dark); }
+.sector-bar.neg { background: #C0392B; }
+.sector-delta { font-size: 12px; font-weight: 600; text-align: right; }
+.sector-delta.up { color: #2E7D32; }
+.sector-delta.down { color: #C0392B; }
+.sector-delta.flat { color: var(--text-secondary); }
+
+.region-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.region-row.last { border-top: 0.5px solid rgba(26,31,60,0.18); border-bottom: none; margin-top: 4px; padding-top: 14px; }
+.region-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.region-caption { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+.region-delta { font-size: 14px; font-weight: 600; }
+.region-delta.up { color: #2E7D32; }
+.region-delta.down { color: #C0392B; }
+.region-delta.flat { color: var(--text-secondary); }
+
+.insight-card { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius-lg); margin-bottom: 16px; background: rgba(30,215,96,0.10); border: 0.5px solid rgba(30,215,96,0.35); }
+.insight-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--green-dark); flex-shrink: 0; }
+.insight-icon i { font-size: 18px; }
+.insight-title { font-size: 13px; font-weight: 600; color: #176A2C; }
+.insight-desc { font-size: 12px; color: #1F4A14; line-height: 1.6; margin-top: 4px; }
 `;
