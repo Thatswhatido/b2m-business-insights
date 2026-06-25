@@ -121,7 +121,10 @@ const STORE_WEIGHTS: Record<Store, number> = {
   Blanche: 0.25,
 };
 
+type View = "home" | "insights";
+
 function Dashboard() {
+  const [view, setView] = useState<View>("home");
   const [tab, setTab] = useState<TabId>("sales");
   const [store, setStore] = useState<(typeof STORES)[number]>("All stores");
   const [year, setYear] = useState<Year>("2026");
@@ -161,19 +164,27 @@ function Dashboard() {
       <div className="layout">
         {/* Sidebar */}
         <nav className="sidebar">
-          <div className="sidebar-item">
-            <div className="sidebar-sub">
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <i className="ti ti-building-store" />
-                <span>Dashboard</span>
-              </div>
-              <i className="ti ti-chevron-down" style={{ fontSize: 13 }} />
-            </div>
+          <div
+            className={`sidebar-item${view === "home" ? " active" : ""}`}
+            onClick={() => setView("home")}
+            role="button"
+            tabIndex={0}
+          >
+            <i className="ti ti-building-store" />
+            <span>Dashboard</span>
           </div>
           <SideItem icon="ti-building" label="Company" />
           <SideItem icon="ti-map-pin" label="Stores" />
           <SideItem icon="ti-activity" label="Activity" />
-          <SideItem icon="ti-chart-bar" label="Insight" active />
+          <div
+            className={`sidebar-item${view === "insights" ? " active" : ""}`}
+            onClick={() => setView("insights")}
+            role="button"
+            tabIndex={0}
+          >
+            <i className="ti ti-chart-bar" />
+            <span>Insight</span>
+          </div>
         </nav>
 
         {/* Main */}
