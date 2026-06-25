@@ -908,7 +908,7 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
   const chartW = 680;
   const chartH = 220;
   const left = 48;
-  const topY = 20;
+  const topY = 50;
   const baseY = 175;
   const usableH = baseY - topY;
   const innerW = chartW - left - 16;
