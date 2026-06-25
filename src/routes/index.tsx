@@ -2652,10 +2652,11 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
             <p className="recap-headline">Strong week, your basket grew faster than the sector</p>
             <p className="recap-period">12 - 18 May 2026 · vs previous week</p>
           </div>
-          <a href="#" className="recap-cta">
+          <button type="button" onClick={onViewDashboard} className="recap-cta">
             View full dashboard
             <i className="ti ti-arrow-right" />
-          </a>
+          </button>
+
         </div>
 
         <div className="recap-revenue-row">
