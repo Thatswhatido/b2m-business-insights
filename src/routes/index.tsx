@@ -1673,18 +1673,8 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
         </div>
       </div>
 
-      {/* Warning insight */}
-      {pct < sectorPct && (
-        <div className="insight-card warning">
-          <div className="insight-icon warning"><i className="ti ti-alert-triangle" /></div>
-          <div>
-            <div className="insight-title warning">Your decline outpaces the sector by {(sectorPct - pct).toFixed(1)} points</div>
-            <div className="insight-desc warning">
-              Brussels restaurants are down {Math.abs(sectorPct).toFixed(1)}% on average. You are down {Math.abs(pct).toFixed(1)}%. The bank holiday explains 2-3 points. The remaining gap is yours to investigate. New client acquisition ({fmtPct(pctDelta(newA, newB))}) is the largest contributor.
-            </div>
-          </div>
-        </div>
-      )}
+
+
 
       <div className="info-banner">
         <i className="ti ti-info-circle" />
