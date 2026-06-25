@@ -262,7 +262,7 @@ function Dashboard() {
           ) : tab === "comparison" ? (
             <ComparisonTab year={year} month={month} store={store} />
           ) : tab === "segments" ? (
-            <SegmentsTab store={store} />
+            <SegmentsTab year={year} month={month} store={store} />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
