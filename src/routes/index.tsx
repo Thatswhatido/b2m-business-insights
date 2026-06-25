@@ -1627,34 +1627,6 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
         </svg>
       </div>
 
-      {/* Metric breakdown + Sector context */}
-      <div className="cmp-two-col">
-        <div className="cmp-card">
-          <div className="section-title" style={{ marginBottom: 12 }}>
-            <i className="ti ti-list-numbers" />Metric breakdown
-          </div>
-          <div className="cmp-metric-row cmp-metric-header">
-            <span>Metric</span><span>Period A</span><span>Period B</span><span style={{ textAlign: "right" }}>Change</span>
-          </div>
-          {[
-            { name: "Revenue", a: fmtEUR(revA), b: fmtEUR(revB), d: pctDelta(revA, revB) },
-            { name: "Transactions", a: txA.toLocaleString("fr-FR"), b: txB.toLocaleString("fr-FR"), d: pctDelta(txA, txB) },
-            { name: "Avg basket", a: `${basketA.toFixed(2)} EUR`, b: `${basketB.toFixed(2)} EUR`, d: pctDelta(basketA, basketB) },
-            { name: "New clients", a: String(newA), b: String(newB), d: pctDelta(newA, newB) },
-            { name: "Known clients", a: String(knownA), b: String(knownB), d: pctDelta(knownA, knownB) },
-          ].map((m) => (
-            <div className="cmp-metric-row" key={m.name}>
-              <span className="cmp-metric-name">{m.name}</span>
-              <span>{m.a}</span>
-              <span>{m.b}</span>
-              <span className={`cmp-metric-delta ${m.d < 0 ? "danger" : "success"}`}>{fmtPct(m.d)}</span>
-            </div>
-          ))}
-        </div>
-
-
-
-      </div>
 
 
 
