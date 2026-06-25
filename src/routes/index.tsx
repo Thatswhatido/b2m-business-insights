@@ -1466,6 +1466,231 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
   );
 }
 
+// ============================================================
+// Comparison tab
+// ============================================================
+const PERIOD_OPTIONS = [
+  "Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025",
+  "Q1 2026", "Q2 2026",
+] as const;
+type PeriodOpt = (typeof PERIOD_OPTIONS)[number];
+
+function ComparisonTab({ year, month, store }: { year: string; month: string; store: Store }) {
+  const [periodA, setPeriodA] = useState<PeriodOpt>("Q3 2025");
+  const [periodB, setPeriodB] = useState<PeriodOpt>("Q4 2025");
+  const [quick, setQuick] = useState<"Last quarter" | "Year over year" | "Custom">("Custom");
+
+  const handleQuick = (q: typeof quick) => {
+    setQuick(q);
+    if (q === "Last quarter") { setPeriodA("Q3 2025"); setPeriodB("Q4 2025"); }
+    else if (q === "Year over year") { setPeriodA("Q1 2025"); setPeriodB("Q1 2026"); }
+  };
+
+  const storeMult = STORE_WEIGHTS[store];
+  const seed = hash(`cmp|${year}|${month}|${store}|${periodA}|${periodB}`);
+  const r = (i: number, lo: number, hi: number) => {
+    const v = rand(seed, i);
+    return lo + v * (hi - lo);
+  };
+
+  const revA = Math.round(r(1, 44000, 52000) * storeMult);
+  const revB = Math.round(r(2, 38000, 46000) * storeMult);
+  const diff = revB - revA;
+  const pct = (diff / revA) * 100;
+  const sectorPct = -9 + (r(3, -1.5, 1.5));
+
+  const txA = Math.round(r(4, 2900, 3400) * storeMult);
+  const txB = Math.round(r(5, 2600, 3100) * storeMult);
+  const basketA = revA / Math.max(1, txA);
+  const basketB = revB / Math.max(1, txB);
+  const newA = Math.round(r(6, 120, 165) * storeMult);
+  const newB = Math.round(r(7, 80, 120) * storeMult);
+  const knownA = Math.round(r(8, 380, 440) * storeMult);
+  const knownB = Math.round(r(9, 400, 460) * storeMult);
+
+  const pctDelta = (a: number, b: number) => ((b - a) / Math.max(1, a)) * 100;
+  const fmtPct = (n: number) => `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
+
+  // Build chart values per week (Wk1..Wk6) for A and B
+  const weeksA = Array.from({ length: 6 }, (_, i) => r(20 + i, 5800, 9200) * storeMult);
+  const weeksB = Array.from({ length: 6 }, (_, i) => r(30 + i, 5000, 8200) * storeMult);
+  const all = [...weeksA, ...weeksB];
+  const vMin = Math.min(...all) * 0.9;
+  const vMax = Math.max(...all) * 1.05;
+  const yAt = (v: number) => 20 + ((vMax - v) / (vMax - vMin)) * 135;
+  const xAt = (i: number) => 100 + i * 100;
+  const ptsA = weeksA.map((v, i) => `${xAt(i)},${yAt(v).toFixed(1)}`).join(" ");
+  const ptsB = weeksB.map((v, i) => `${xAt(i)},${yAt(v).toFixed(1)}`).join(" ");
+
+  return (
+    <>
+      {/* Period selector */}
+      <div className="period-selector">
+        <div className="period-block period-a">
+          <p className="period-label">Period A</p>
+          <Dropdown value={periodA} options={PERIOD_OPTIONS} onChange={(v) => { setPeriodA(v as PeriodOpt); setQuick("Custom"); }} icon="ti-calendar" />
+        </div>
+        <div className="period-vs">vs</div>
+        <div className="period-block period-b">
+          <p className="period-label">Period B</p>
+          <Dropdown value={periodB} options={PERIOD_OPTIONS} onChange={(v) => { setPeriodB(v as PeriodOpt); setQuick("Custom"); }} icon="ti-calendar" />
+        </div>
+        <div className="period-quick">
+          {(["Last quarter", "Year over year", "Custom"] as const).map((q) => (
+            <button key={q} type="button" className={`quick-btn${quick === q ? " active" : ""}`} onClick={() => handleQuick(q)}>{q}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* KPIs */}
+      <div className="kpi-grid-4">
+        <div className="kpi-card">
+          <p className="kpi-label">Period A total</p>
+          <p className="kpi-value">{fmtEUR(revA)}</p>
+          <p className="kpi-caption">{periodA}</p>
+        </div>
+        <div className="kpi-card">
+          <p className="kpi-label">Period B total</p>
+          <p className="kpi-value">{fmtEUR(revB)}</p>
+          <p className="kpi-caption">{periodB}</p>
+        </div>
+        <div className={`kpi-card ${pct < 0 ? "highlight-danger" : "highlight-success"}`}>
+          <p className="kpi-label">Your change</p>
+          <p className={`kpi-value ${pct < 0 ? "text-danger" : "text-success"}`}>{fmtPct(pct)}</p>
+          <p className="kpi-caption">{diff > 0 ? "+" : ""}{fmtEUR(diff)}</p>
+        </div>
+        <div className="kpi-card">
+          <p className="kpi-label">Sector change</p>
+          <p className="kpi-value kpi-value-muted">{fmtPct(sectorPct)}</p>
+          <p className="kpi-caption">Brussels restaurants</p>
+        </div>
+      </div>
+
+      {/* Weekly revenue chart */}
+      <div className="cmp-card">
+        <div className="cmp-card-header">
+          <div>
+            <p className="cmp-card-title">Weekly revenue</p>
+            <p className="cmp-card-subtitle">Period A vs Period B · sector event marked</p>
+          </div>
+          <div className="cmp-legend">
+            <span><span className="legend-dot" style={{ background: "var(--navy)" }} />Period A</span>
+            <span><span className="legend-dot dashed" style={{ borderColor: "var(--green-dark)" }} />Period B</span>
+            <span><span className="legend-dot" style={{ background: "#E5A53A" }} />Sector event</span>
+          </div>
+        </div>
+
+        <svg viewBox="0 0 640 220" style={{ width: "100%", height: 220 }} role="img" aria-label="Weekly revenue comparison">
+          <g stroke="var(--border-light)" strokeWidth="0.5">
+            {[20, 65, 110, 155].map((y) => <line key={y} x1="40" y1={y} x2="640" y2={y} />)}
+          </g>
+          <g fontSize="9" fill="var(--text-tertiary)" fontFamily="Inter,sans-serif" textAnchor="end">
+            <text x="32" y="23">{Math.round(vMax / 1000)}k</text>
+            <text x="32" y="68">{Math.round((vMax + vMin) / 2 / 1000 + 1)}k</text>
+            <text x="32" y="113">{Math.round((vMax + vMin) / 2 / 1000)}k</text>
+            <text x="32" y="158">{Math.round(vMin / 1000)}k</text>
+          </g>
+
+          {/* Sector event band Wk 4-5 */}
+          <rect x="350" y="20" width="100" height="135" fill="#E5A53A" fillOpacity="0.16" />
+          <line x1="350" y1="20" x2="350" y2="155" stroke="#BA7517" strokeWidth="0.5" strokeDasharray="3 2" />
+          <line x1="450" y1="20" x2="450" y2="155" stroke="#BA7517" strokeWidth="0.5" strokeDasharray="3 2" />
+          <text x="400" y="35" textAnchor="middle" fontSize="10" fill="#854F0B" fontWeight="500" fontFamily="Inter,sans-serif">Sector event</text>
+
+          {/* Period A */}
+          <polyline fill="none" stroke="var(--navy)" strokeWidth="2.2" points={ptsA} />
+          {weeksA.map((v, i) => (
+            <circle key={`a${i}`} cx={xAt(i)} cy={yAt(v)} r="4" fill="var(--navy)" />
+          ))}
+
+          {/* Period B */}
+          <polyline fill="none" stroke="var(--green-dark)" strokeWidth="2.2" strokeDasharray="5 3" points={ptsB} />
+          {weeksB.map((v, i) => (
+            <circle key={`b${i}`} cx={xAt(i)} cy={yAt(v)} r="4" fill="var(--green-dark)" />
+          ))}
+
+          <g fontSize="9.5" fill="var(--text-secondary)" fontFamily="Inter,sans-serif" textAnchor="middle">
+            {["Wk 1", "Wk 2", "Wk 3", "Wk 4", "Wk 5", "Wk 6"].map((l, i) => (
+              <text key={l} x={xAt(i)} y="180">{l}</text>
+            ))}
+          </g>
+        </svg>
+      </div>
+
+      {/* Metric breakdown + Sector context */}
+      <div className="cmp-two-col">
+        <div className="cmp-card">
+          <div className="section-title" style={{ marginBottom: 12 }}>
+            <i className="ti ti-list-numbers" />Metric breakdown
+          </div>
+          <div className="cmp-metric-row cmp-metric-header">
+            <span>Metric</span><span>Period A</span><span>Period B</span><span style={{ textAlign: "right" }}>Change</span>
+          </div>
+          {[
+            { name: "Revenue", a: fmtEUR(revA), b: fmtEUR(revB), d: pctDelta(revA, revB) },
+            { name: "Transactions", a: txA.toLocaleString("fr-FR"), b: txB.toLocaleString("fr-FR"), d: pctDelta(txA, txB) },
+            { name: "Avg basket", a: `${basketA.toFixed(2)} EUR`, b: `${basketB.toFixed(2)} EUR`, d: pctDelta(basketA, basketB) },
+            { name: "New clients", a: String(newA), b: String(newB), d: pctDelta(newA, newB) },
+            { name: "Known clients", a: String(knownA), b: String(knownB), d: pctDelta(knownA, knownB) },
+          ].map((m) => (
+            <div className="cmp-metric-row" key={m.name}>
+              <span className="cmp-metric-name">{m.name}</span>
+              <span>{m.a}</span>
+              <span>{m.b}</span>
+              <span className={`cmp-metric-delta ${m.d < 0 ? "danger" : "success"}`}>{fmtPct(m.d)}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="cmp-card">
+          <div className="section-title" style={{ marginBottom: 12 }}>
+            <i className="ti ti-calendar-event" />Sector context
+          </div>
+          <div className="cmp-event-row">
+            <div className="cmp-event-dot" style={{ background: "#BA7517" }} />
+            <div>
+              <p className="cmp-event-title">Wk 5 · Sector contraction</p>
+              <p className="cmp-event-desc">Restaurant voucher volume in Brussels dropped 12% in week 3 of {periodB}. Sector-wide pattern, not isolated to your store.</p>
+            </div>
+          </div>
+          <div className="cmp-event-row">
+            <div className="cmp-event-dot" style={{ background: "var(--navy)" }} />
+            <div>
+              <p className="cmp-event-title">Wk 2 · Budget load week</p>
+              <p className="cmp-event-desc">Top employers in your area loaded meal vouchers. Your Period B sales rose, but less than typical (+8% vs usual +20-30%).</p>
+            </div>
+          </div>
+          <div className="cmp-event-row last">
+            <div className="cmp-event-dot" style={{ background: "var(--green-dark)" }} />
+            <div>
+              <p className="cmp-event-title">Period B · Public holiday</p>
+              <p className="cmp-event-desc">One additional bank holiday in Period B vs Period A. Likely contributes 2-3% of the revenue gap.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Warning insight */}
+      {pct < sectorPct && (
+        <div className="insight-card warning">
+          <div className="insight-icon warning"><i className="ti ti-alert-triangle" /></div>
+          <div>
+            <div className="insight-title warning">Your decline outpaces the sector by {(sectorPct - pct).toFixed(1)} points</div>
+            <div className="insight-desc warning">
+              Brussels restaurants are down {Math.abs(sectorPct).toFixed(1)}% on average. You are down {Math.abs(pct).toFixed(1)}%. The bank holiday explains 2-3 points. The remaining gap is yours to investigate. New client acquisition ({fmtPct(pctDelta(newA, newB))}) is the largest contributor.
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="info-banner">
+        <i className="ti ti-info-circle" />
+        <p>Comparison is calculated on equivalent calendar weeks. Sector data sourced from 1,240 Brussels restaurants.</p>
+      </div>
+    </>
+  );
+}
+
 const CSS = `
 .pluxee-app {
   --navy: #1A1F3C;
