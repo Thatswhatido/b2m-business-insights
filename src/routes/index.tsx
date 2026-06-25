@@ -137,9 +137,7 @@ function Dashboard() {
 
       {/* Top bar */}
       <header className="topbar">
-        <div className="topbar-logo">
-          plu<span>x</span>ee
-        </div>
+        <div className="topbar-logo">Logo</div>
         <div className="topbar-right">
           <div className="lang-chip">
             <span>EN</span>
