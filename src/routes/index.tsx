@@ -190,7 +190,11 @@ function Dashboard() {
         {/* Main */}
         <main className="main">
           {view === "home" ? (
-            <HomeTab />
+            <HomeTab
+              onViewDashboard={() => { setView("insights"); setTab("sales"); }}
+              onOpenForecast={() => { setView("insights"); setTab("forecast"); }}
+            />
+
           ) : (
           <>
 
