@@ -459,7 +459,7 @@ function SalesTab({ year, month, product }: { year: Year; month: Month; product:
                     width={barW}
                     height={h}
                     rx={3}
-                    fill={isHover ? "var(--green)" : "var(--navy)"}
+                    fill={isHover ? "#C7EBF7" : "var(--navy)"}
                   />
                   {/* invisible wider hit area for hover */}
                   <rect
@@ -486,23 +486,40 @@ function SalesTab({ year, month, product }: { year: Year; month: Month; product:
               const b = bars[hover];
               const h = (b.value / max) * usableH;
               const cx = left + slot * hover + slot / 2;
-              const y = baseY - h - 10;
-              const label = fmtEUR(b.value);
-              const tw = Math.max(70, label.length * 5.5 + 16);
-              const tx = Math.min(Math.max(cx - tw / 2, left), chartW - tw);
-              const ty = Math.max(0, y - 18);
+              const label = data.mode === "daily" ? `${b.label} — ${fmtEUR(b.value)}` : fmtEUR(b.value);
+              const th = 26;
+              const padX = 12;
+              const tw = Math.max(70, label.length * 6.8 + padX * 2);
+              const tipH = 6; // triangle pointer height
+              const barTopY = baseY - h;
+              const ty = Math.max(2, barTopY - tipH - th - 4);
+              const tx = Math.min(Math.max(cx - tw / 2, 2), chartW - tw - 2);
+              const triBaseY = ty + th;
+              const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
               return (
                 <g pointerEvents="none">
-                  <rect x={tx} y={ty} width={tw} height={18} rx={4} fill="var(--navy)" />
+                  {/* shadow */}
+                  <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
+                  <polygon
+                    points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
+                    fill="rgba(26,31,60,0.18)"
+                  />
+                  {/* tooltip body */}
+                  <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
+                  <polygon
+                    points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
+                    fill="var(--navy)"
+                  />
                   <text
                     x={tx + tw / 2}
-                    y={ty + 12}
-                    fontSize="10"
+                    y={ty + th / 2 + 5}
+                    fontSize="13"
+                    fontWeight="700"
                     fill="#FFFFFF"
                     fontFamily="Inter, sans-serif"
                     textAnchor="middle"
                   >
-                    {data.mode === "daily" ? `${b.label} — ${label}` : `${b.label} — ${label}`}
+                    {label}
                   </text>
                 </g>
               );
