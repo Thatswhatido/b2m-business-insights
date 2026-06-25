@@ -1574,12 +1574,12 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
         <div className="cmp-card-header">
           <div>
             <p className="cmp-card-title">Weekly revenue</p>
-            <p className="cmp-card-subtitle">Period A vs Period B · sector event marked</p>
+            <p className="cmp-card-subtitle">Period A vs Period B</p>
           </div>
           <div className="cmp-legend">
             <span><span className="legend-dot" style={{ background: "var(--navy)" }} />Period A</span>
             <span><span className="legend-dot dashed" style={{ borderColor: "var(--green-dark)" }} />Period B</span>
-            <span><span className="legend-dot" style={{ background: "#E5A53A" }} />Sector event</span>
+
           </div>
         </div>
 
@@ -1594,11 +1594,8 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
             <text x="32" y="158">{Math.round(vMin / 1000)}k</text>
           </g>
 
-          {/* Sector event band Wk 4-5 */}
-          <rect x="350" y="20" width="100" height="135" fill="#E5A53A" fillOpacity="0.16" />
-          <line x1="350" y1="20" x2="350" y2="155" stroke="#BA7517" strokeWidth="0.5" strokeDasharray="3 2" />
-          <line x1="450" y1="20" x2="450" y2="155" stroke="#BA7517" strokeWidth="0.5" strokeDasharray="3 2" />
-          <text x="400" y="35" textAnchor="middle" fontSize="10" fill="#854F0B" fontWeight="500" fontFamily="Inter,sans-serif">Sector event</text>
+
+
 
           {/* Period A */}
           <polyline fill="none" stroke="var(--navy)" strokeWidth="2.2" points={ptsA} />
