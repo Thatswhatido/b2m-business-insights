@@ -625,31 +625,53 @@ function BenchmarkTab({ year, month, product }: { year: Year; month: Month; prod
 
   const yearNum = parseInt(year, 10);
   const isCurrentYear = yearNum === TODAY_YEAR;
-  const lastIdx = month === "All months"
-    ? (isCurrentYear ? TODAY_MONTH_IDX - 1 : 11)
-    : MONTH_LABELS.indexOf(month as (typeof MONTH_LABELS)[number]);
-  const monthsArr = MONTH_LABELS.slice(0, Math.max(1, lastIdx + 1));
 
-  // Highlight index = selected month, or peak month otherwise
-  const peakIdx = monthsArr.length - 1;
+  // Build pairs: monthly when no month selected, daily when a month is selected.
+  let pairs: { label: string; mine: number; peers: number }[];
+  let mode: "monthly" | "daily";
 
-  const pairs = monthsArr.map((m, i) => {
-    const mine = Math.round((500 + rand(seed, i + 1) * 900) * yearMult * productMult);
-    const peers = Math.round(mine * (0.75 + rand(seed, 80 + i) * 0.5));
-    return { label: m, mine, peers };
-  });
+  if (month === "All months") {
+    mode = "monthly";
+    const lastIdx = isCurrentYear ? TODAY_MONTH_IDX - 1 : 11;
+    const monthsArr = MONTH_LABELS.slice(0, Math.max(0, lastIdx + 1));
+    pairs = monthsArr.map((m, i) => {
+      const mine = Math.round((500 + rand(seed, i + 1) * 900) * yearMult * productMult);
+      const peers = Math.round(mine * (0.75 + rand(seed, 80 + i) * 0.5));
+      return { label: m, mine, peers };
+    });
+  } else {
+    mode = "daily";
+    const monthIdx = MONTH_LABELS.indexOf(month as (typeof MONTH_LABELS)[number]);
+    const total = daysInMonth(yearNum, monthIdx);
+    const lastDay = isCurrentYear && monthIdx === TODAY_MONTH_IDX
+      ? Math.max(0, TODAY_DAY - 1)
+      : total;
+    pairs = Array.from({ length: lastDay }, (_, i) => {
+      const mine = Math.round((20 + rand(seed, i + 1) * 60) * yearMult * productMult);
+      const peers = Math.round(mine * (0.75 + rand(seed, 80 + i) * 0.5));
+      return { label: String(i + 1), mine, peers };
+    });
+  }
+
+  const totalMine = pairs.reduce((s, p) => s + p.mine, 0);
+  const totalPeers = pairs.reduce((s, p) => s + p.peers, 0);
+
+  const [hover, setHover] = useState<number | null>(null);
 
   const max = Math.max(...pairs.flatMap((p) => [p.mine, p.peers]), 1);
+  const n = Math.max(pairs.length, 1);
   const chartW = 680;
   const chartH = 220;
   const left = 48;
   const innerW = chartW - left - 8;
-  const slot = innerW / pairs.length;
-  const barW = Math.min(14, slot * 0.32);
+  const slot = innerW / n;
+  const barW = mode === "monthly" ? Math.min(14, slot * 0.32) : Math.max(2, slot * 0.38);
   const topY = 24;
   const baseY = 170;
   const usableH = baseY - topY;
   const ticks = [max, max * 0.66, max * 0.33, 0];
+
+  const labelStride = mode === "monthly" ? 1 : n <= 16 ? 1 : n <= 24 ? 3 : 5;
 
   const peersCount = 40 + Math.floor(rand(seed, 200) * 10);
   const mkKpi = (k: number, baseMine: number, basePeer: number, suffix = "") => {
@@ -676,7 +698,7 @@ function BenchmarkTab({ year, month, product }: { year: Year; month: Month; prod
         <div className="section-title" style={{ justifyContent: "space-between" }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             Revenue vs peers
-            <InfoTip text={`Benchmark based on ${peersCount} peers within a 2 km radius and the same average basket bracket. Bars compare your monthly revenue to the peer average so you can see how you trend against similar stores.`} />
+            <InfoTip text={`Benchmark based on ${peersCount} peers within a 2 km radius and the same average basket bracket. Bars compare your revenue to the peer average so you can see how you trend against similar stores.`} />
           </span>
           <span className="bench-legend">
             <span><span className="legend-dot" style={{ background: "var(--navy)" }} />Your store</span>
@@ -684,9 +706,25 @@ function BenchmarkTab({ year, month, product }: { year: Year; month: Month; prod
           </span>
         </div>
         <div className="section-subtle">{peersCount} peers · 2 km radius · same avg basket bracket</div>
+        <div className="bench-totals">
+          <div>
+            <div className="bench-total-value">{fmtEUR(totalMine)}</div>
+            <div className="bench-total-caption">Your store</div>
+          </div>
+          <div>
+            <div className="bench-total-value muted">{fmtEUR(totalPeers)}</div>
+            <div className="bench-total-caption">Peers (avg)</div>
+          </div>
+        </div>
 
-        <div className="chart-area" style={{ marginTop: 16 }}>
-          <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: 220 }} role="img" aria-label="Revenue vs peers">
+        <div className="chart-area">
+          <svg
+            viewBox={`0 0 ${chartW} ${chartH}`}
+            style={{ width: "100%", height: 220 }}
+            role="img"
+            aria-label="Revenue vs peers"
+            onMouseLeave={() => setHover(null)}
+          >
             <g stroke="rgba(26,31,60,0.08)" strokeWidth="0.5">
               {ticks.map((_, i) => {
                 const y = topY + (usableH * i) / 3;
@@ -705,21 +743,75 @@ function BenchmarkTab({ year, month, product }: { year: Year; month: Month; prod
               const cx = left + slot * i + slot / 2;
               const xMine = cx - barW - 1;
               const xPeer = cx + 1;
-              const isPeak = i === peakIdx;
+              const isHover = hover === i;
               return (
                 <g key={p.label + i}>
                   <rect x={xMine} y={baseY - hMine} width={barW} height={hMine} rx={3}
-                    fill="var(--navy)"
-                    stroke={isPeak ? "var(--green)" : "none"} strokeWidth={isPeak ? 1.5 : 0} />
-                  <rect x={xPeer} y={baseY - hPeer} width={barW} height={hPeer} rx={3} fill="var(--green)" opacity={0.85} />
+                    fill={isHover ? "#C7EBF7" : "var(--navy)"} />
+                  <rect x={xPeer} y={baseY - hPeer} width={barW} height={hPeer} rx={3}
+                    fill={isHover ? "#A8E8B8" : "var(--green)"} opacity={isHover ? 1 : 0.85} />
+                  {/* invisible hit area */}
+                  <rect
+                    x={left + slot * i}
+                    y={topY}
+                    width={slot}
+                    height={baseY - topY}
+                    fill="transparent"
+                    onMouseEnter={() => setHover(i)}
+                  />
                 </g>
               );
             })}
             <g fontSize="10" fill="#5F5E5A" fontFamily="Inter, sans-serif" textAnchor="middle">
-              {pairs.map((p, i) => (
-                <text key={p.label + i} x={left + slot * i + slot / 2} y={190}>{p.label}</text>
-              ))}
+              {pairs.map((p, i) =>
+                i % labelStride === 0 ? (
+                  <text key={p.label + i} x={left + slot * i + slot / 2} y={190}>{p.label}</text>
+                ) : null
+              )}
             </g>
+            {hover !== null && pairs[hover] && (() => {
+              const p = pairs[hover];
+              const hMine = (p.mine / max) * usableH;
+              const hPeer = (p.peers / max) * usableH;
+              const cx = left + slot * hover + slot / 2;
+              const labelPrefix = mode === "daily" ? `${p.label} — ` : "";
+              const line1 = `You ${fmtEUR(p.mine)}`;
+              const line2 = `Peers ${fmtEUR(p.peers)}`;
+              const headLen = labelPrefix.length;
+              const tw = Math.max(120, (Math.max(line1.length, line2.length) + headLen) * 6.6 + 24);
+              const th = mode === "daily" ? 56 : 44;
+              const tipH = 6;
+              const topBar = baseY - Math.max(hMine, hPeer);
+              const ty = Math.max(2, topBar - tipH - th - 4);
+              const tx = Math.min(Math.max(cx - tw / 2, 2), chartW - tw - 2);
+              const triBaseY = ty + th;
+              const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
+              return (
+                <g pointerEvents="none">
+                  <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
+                  <polygon
+                    points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
+                    fill="rgba(26,31,60,0.18)"
+                  />
+                  <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
+                  <polygon
+                    points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
+                    fill="var(--navy)"
+                  />
+                  {mode === "daily" && (
+                    <text x={tx + 12} y={ty + 16} fontSize="11" fontWeight="500" fill="#C7EBF7" fontFamily="Inter, sans-serif">
+                      {p.label}
+                    </text>
+                  )}
+                  <text x={tx + 12} y={ty + (mode === "daily" ? 32 : 18)} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
+                    <tspan fill="#C7EBF7">You </tspan>{fmtEUR(p.mine)}
+                  </text>
+                  <text x={tx + 12} y={ty + (mode === "daily" ? 48 : 34)} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
+                    <tspan fill="#A8E8B8">Peers </tspan>{fmtEUR(p.peers)}
+                  </text>
+                </g>
+              );
+            })()}
           </svg>
         </div>
       </div>
@@ -880,6 +972,10 @@ const CSS = `
 
 .section-subtle { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
 .bench-legend { display: inline-flex; gap: 14px; font-size: 11.5px; color: var(--text-secondary); font-weight: 400; }
+.bench-totals { display: flex; gap: 32px; margin: 12px 0 8px; }
+.bench-total-value { font-size: 22px; font-weight: 600; color: var(--text-primary); line-height: 1.1; }
+.bench-total-value.muted { color: var(--text-secondary); font-weight: 500; }
+.bench-total-caption { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
 .legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
 
 .bench-kpi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
