@@ -178,9 +178,11 @@ function Dashboard() {
             <div className="store-select-wrap" ref={storeRef}>
               <div
                 className="store-select"
-                onClick={() => setStoreOpen((v) => !v)}
+                onClick={() => { if (tab !== "sector") setStoreOpen((v) => !v); }}
                 role="button"
-                tabIndex={0}
+                tabIndex={tab === "sector" ? -1 : 0}
+                aria-disabled={tab === "sector"}
+                style={tab === "sector" ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
               >
                 <span>{store}</span>
                 <i
@@ -188,7 +190,7 @@ function Dashboard() {
                   style={{ fontSize: 14, color: "var(--text-tertiary)" }}
                 />
               </div>
-              {storeOpen && (
+              {storeOpen && tab !== "sector" && (
                 <div className="store-menu">
                   {STORES.map((s) => (
                     <div
