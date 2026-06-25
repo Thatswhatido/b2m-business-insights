@@ -317,12 +317,34 @@ function buildData(year: Year, month: Month, product: Product) {
     : product === "Lunch" ? 0.7
     : 0.3;
 
-  const months = month === "All months" ? [...MONTH_LABELS] : [month];
-  const base = months.map((m, i) => {
-    const v = 600 + rand(seed, i + 1) * 900;
-    return { m, value: Math.round(v * yearMult * productMult) };
-  });
-  const total = base.reduce((s, b) => s + b.value, 0);
+  const yearNum = parseInt(year, 10);
+  const isCurrentYear = yearNum === TODAY_YEAR;
+
+  // Build bars: monthly when no month selected, daily when a month is selected.
+  let bars: { label: string; value: number }[];
+  let mode: "monthly" | "daily";
+
+  if (month === "All months") {
+    mode = "monthly";
+    const lastIdx = isCurrentYear ? TODAY_MONTH_IDX - 1 : 11; // d-1 month for current year
+    const monthsArr = MONTH_LABELS.slice(0, Math.max(0, lastIdx + 1));
+    bars = monthsArr.map((m, i) => {
+      const v = 600 + rand(seed, i + 1) * 900;
+      return { label: m, value: Math.round(v * yearMult * productMult) };
+    });
+  } else {
+    mode = "daily";
+    const monthIdx = MONTH_LABELS.indexOf(month as (typeof MONTH_LABELS)[number]);
+    const total = daysInMonth(yearNum, monthIdx);
+    const lastDay = isCurrentYear && monthIdx === TODAY_MONTH_IDX
+      ? Math.max(0, TODAY_DAY - 1)
+      : total;
+    bars = Array.from({ length: lastDay }, (_, i) => {
+      const v = 20 + rand(seed, i + 1) * 60;
+      return { label: String(i + 1), value: Math.round(v * yearMult * productMult) };
+    });
+  }
+  const total = bars.reduce((s, b) => s + b.value, 0);
 
   const employerPool = [
     "FNAC", "Proximus", "BNP", "Carrefour", "Orange", "Engie", "Decathlon", "Total", "L'Oréal",
