@@ -1137,17 +1137,82 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
   const horizonWeeks = horizon === "4 weeks" ? 4 : horizon === "12 weeks" ? 12 : 8;
   const fmt = (n: number) => `${n.toLocaleString("fr-FR").replace(/\u202f/g, " ")} EUR`;
 
-  // Scenario-driven dotted line position: optimistic = top edge of band, conservative = bottom, base = middle
-  const forecastPath = scenario === "Optimistic"
-    ? "M299,113 C320,108 335,96 350,90 C365,84 385,48 401,52 C417,56 435,68 452,78 C469,88 487,96 503,104 C519,112 535,128 554,142 C573,156 590,138 605,128 C620,118 638,110 656,116 C674,122 690,102 707,72"
-    : scenario === "Conservative"
-    ? "M299,133 C320,128 335,128 350,120 C365,114 385,78 401,82 C417,86 435,98 452,108 C469,118 487,126 503,134 C519,142 535,158 554,172 C573,186 590,168 605,158 C620,148 638,140 656,146 C674,152 690,166 707,140"
-    : "M299,123 C320,118 335,111 350,105 C365,99 385,77 401,67 C417,72 435,84 452,93 C469,102 487,110 503,119 C519,128 535,143 554,157 C573,171 590,153 605,143 C620,133 638,126 656,131 C674,136 690,116 707,106";
-  const forecastDots: [number, number][] = scenario === "Optimistic"
-    ? [[350,90],[401,52],[452,78],[503,104],[554,142],[605,128],[656,116],[707,72]]
-    : scenario === "Conservative"
-    ? [[350,120],[401,82],[452,108],[503,134],[554,172],[605,158],[656,146],[707,140]]
-    : [[350,105],[401,67],[452,93],[503,119],[554,157],[605,143],[656,131],[707,106]];
+  // ----- Build chart points procedurally based on horizonWeeks -----
+  const PAST = 5;
+  const totalPts = PAST + 1 + horizonWeeks; // past + now + forecast
+  const X0 = 44;
+  const X1 = 758;
+  const step = (X1 - X0) / (totalPts - 1);
+  const xAt = (i: number) => X0 + i * step;
+  // y mapping: value EUR -> y in [14..212]
+  const yAt = (v: number) => 212 - ((v - 4000) / 9000) * 198;
+  const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+  // Deterministic noise per (seed, horizon)
+  const noise = (i: number, amp: number) => {
+    const x = Math.sin(seed * 131 + i * 977) * 10000;
+    return (x - Math.floor(x) - 0.5) * 2 * amp;
+  };
+
+  // Actuals: 5 past + now (index 0..5)
+  const actualVals: number[] = [];
+  for (let i = 0; i <= PAST; i++) {
+    actualVals.push(clamp(8800 + noise(i, 700) + i * 60, 5500, 12500));
+  }
+  const nowVal = actualVals[PAST];
+
+  // Forecast central curve (one point per future week), with gentle wave
+  const baseFc: number[] = [];
+  for (let i = 1; i <= horizonWeeks; i++) {
+    const wave = Math.sin(i / Math.max(2, horizonWeeks / 3)) * 1400;
+    baseFc.push(clamp(nowVal + wave + noise(100 + i, 600) + i * 20, 4800, 12800));
+  }
+  // Band half-width grows with horizon
+  const bandHalf = (i: number) => 600 + i * 110;
+
+  // Scenario offset on the dotted center line
+  const scenShift = scenario === "Optimistic" ? 1 : scenario === "Conservative" ? -1 : 0;
+  const centerVals = baseFc.map((v, idx) => v + scenShift * bandHalf(idx + 1));
+
+  // Build SVG paths
+  const toPath = (pts: [number, number][]) =>
+    pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+
+  const actualPts: [number, number][] = actualVals.map((v, i) => [xAt(i), yAt(v)]);
+  const forecastPts: [number, number][] = [
+    [xAt(PAST), yAt(nowVal)],
+    ...centerVals.map((v, i) => [xAt(PAST + 1 + i), yAt(v)] as [number, number]),
+  ];
+  const forecastDots: [number, number][] = centerVals.map((v, i) => [xAt(PAST + 1 + i), yAt(v)]);
+
+  // Confidence band polygon
+  const upperPts: [number, number][] = [
+    [xAt(PAST), yAt(nowVal)],
+    ...baseFc.map((v, i) => [xAt(PAST + 1 + i), yAt(v + bandHalf(i + 1))] as [number, number]),
+  ];
+  const lowerPtsAsc: [number, number][] = [
+    [xAt(PAST), yAt(nowVal)],
+    ...baseFc.map((v, i) => [xAt(PAST + 1 + i), yAt(v - bandHalf(i + 1))] as [number, number]),
+  ];
+  const lowerPts: [number, number][] = [...lowerPtsAsc].reverse();
+  const bandPath = `${toPath(upperPts)} ${toPath(lowerPts).replace(/^M/, "L")} Z`;
+
+  const actualPath = toPath(actualPts);
+  const forecastPath = toPath(forecastPts);
+  const todayX = xAt(PAST);
+
+  // X axis labels
+  const xLabels: { x: number; label: string }[] = [];
+  for (let i = 0; i < totalPts; i++) {
+    const offset = i - PAST;
+    const label = offset === 0 ? "Now" : offset < 0 ? `Wk ${offset}` : `Wk +${offset}`;
+    xLabels.push({ x: xAt(i), label });
+  }
+
+  // Signal zones (proportional to horizon)
+  const sigGreen1 = horizonWeeks >= 2 ? { x: xAt(PAST + 1) - step / 2, w: step * Math.min(2, horizonWeeks) } : null;
+  const sigRed = horizonWeeks >= 6 ? { x: xAt(PAST + 5) - step / 2, w: step * Math.min(2, horizonWeeks - 4) } : null;
+  const sigGreen2 = horizonWeeks >= 8 ? { x: xAt(PAST + 7) - step / 2, w: step * Math.min(2, horizonWeeks - 6) } : null;
 
   return (
     <>
@@ -1253,26 +1318,16 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
           </g>
 
           {/* Signal zones */}
-          <rect x="329" y="14" width="96" height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />
-          <rect x="533" y="14" width="96" height="198" fill="url(#sigRed)" clipPath="url(#chartClip)" />
-          <rect x="635" y="14" width="96" height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />
-
-          <line x1="329" y1="14" x2="329" y2="212" stroke="#1ED760" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="425" y1="14" x2="425" y2="212" stroke="#1ED760" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="533" y1="14" x2="533" y2="212" stroke="#D0312D" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="629" y1="14" x2="629" y2="212" stroke="#D0312D" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="635" y1="14" x2="635" y2="212" stroke="#1ED760" strokeWidth="0.8" strokeDasharray="3 3" />
+          {sigGreen1 && <rect x={sigGreen1.x} y="14" width={sigGreen1.w} height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />}
+          {sigRed && <rect x={sigRed.x} y="14" width={sigRed.w} height="198" fill="url(#sigRed)" clipPath="url(#chartClip)" />}
+          {sigGreen2 && <rect x={sigGreen2.x} y="14" width={sigGreen2.w} height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />}
 
           {/* Confidence band */}
-          <path
-            clipPath="url(#chartClip)"
-            d="M299,113 C320,108 335,96 350,90 C365,84 385,48 401,52 C417,56 435,68 452,78 C469,88 487,96 503,104 C519,112 535,128 554,142 C573,156 590,138 605,128 C620,118 638,110 656,116 C674,122 690,102 707,72 L707,140 C690,166 674,152 656,146 C638,140 620,148 605,158 C590,168 573,186 554,172 C535,158 519,142 503,134 C487,126 469,118 452,108 C435,98 417,86 401,82 C385,78 365,114 350,120 C335,126 320,128 299,133 Z"
-            fill="url(#bandFill)"
-          />
+          <path clipPath="url(#chartClip)" d={bandPath} fill="url(#bandFill)" />
 
           {/* Today line */}
-          <line x1="299" y1="14" x2="299" y2="212" stroke="#1A1D3B" strokeWidth="1" strokeDasharray="4 3" />
-          <text x="303" y="12" fontSize="9" fill="#1A1D3B" fontFamily="Inter,sans-serif" fontWeight="600">today</text>
+          <line x1={todayX} y1="14" x2={todayX} y2="212" stroke="#1A1D3B" strokeWidth="1" strokeDasharray="4 3" />
+          <text x={todayX + 4} y="12" fontSize="9" fill="#1A1D3B" fontFamily="Inter,sans-serif" fontWeight="600">today</text>
 
           {/* Actual line (navy solid) */}
           <path
@@ -1281,10 +1336,10 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
             strokeWidth="2.2"
             strokeLinejoin="round"
             strokeLinecap="round"
-            d="M44,126 C60,126 75,122 95,122 C115,122 125,128 146,128 C167,128 180,115 197,115 C214,115 230,109 248,109 C266,109 282,113 299,113"
+            d={actualPath}
           />
-          {[[44,126],[95,122],[146,128],[197,115],[248,109],[299,113]].map(([x, y]) => (
-            <circle key={`a${x}`} cx={x} cy={y} r="3.5" fill="#1A1D3B" stroke="white" strokeWidth="1.5" />
+          {actualPts.map(([x, y], i) => (
+            <circle key={`a${i}`} cx={x} cy={y} r="3.5" fill="#1A1D3B" stroke="white" strokeWidth="1.5" />
           ))}
 
           {/* Forecast line (cyan dashed) */}
@@ -1296,18 +1351,20 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
             strokeLinecap="round"
             d={forecastPath}
           />
-          {forecastDots.map(([x, y]) => (
-            <rect key={`f${x}`} x={x - 4} y={y - 4} width="8" height="8" rx="2" fill="#4FC3D9" stroke="white" strokeWidth="1.5" />
+          {forecastDots.map(([x, y], i) => (
+            <rect key={`f${i}`} x={x - 4} y={y - 4} width="8" height="8" rx="2" fill="#4FC3D9" stroke="white" strokeWidth="1.5" />
           ))}
 
           {/* X axis labels */}
           <g fontSize="9.5" fill="#4A4A6A" fontFamily="Inter,sans-serif" textAnchor="middle">
-            {["Wk -5","Wk -4","Wk -3","Wk -2","Wk -1","Now","Wk +1","Wk +2","Wk +3","Wk +4","Wk +5","Wk +6","Wk +7","Wk +8"].map((l, i) => (
-              <text key={l} x={44 + i * 51} y="225">{l}</text>
+            {xLabels.map((l) => (
+              <text key={l.label} x={l.x} y="225">{l.label}</text>
             ))}
           </g>
         </svg>
       </div>
+
+
 
       {/* Signals + Scenarios */}
       <div className="two-col-forecast">
