@@ -113,6 +113,13 @@ const PRODUCTS = ["All products", "Lunch", "Eco"] as const;
 type Year = (typeof YEARS)[number];
 type Month = (typeof MONTHS)[number];
 type Product = (typeof PRODUCTS)[number];
+type Store = (typeof STORES)[number];
+const STORE_WEIGHTS: Record<Store, number> = {
+  "All stores": 1,
+  Center: 0.45,
+  Issy: 0.30,
+  Blanche: 0.25,
+};
 
 function Dashboard() {
   const [tab, setTab] = useState<TabId>("sales");
@@ -242,9 +249,9 @@ function Dashboard() {
           </div>
 
           {tab === "sales" ? (
-            <SalesTab year={year} month={month} product={product} />
+            <SalesTab year={year} month={month} product={product} store={store} />
           ) : tab === "benchmark" ? (
-            <BenchmarkTab year={year} month={month} product={product} />
+            <BenchmarkTab year={year} month={month} product={product} store={store} />
           ) : tab === "sector" ? (
             <SectorHealthTab year={year} month={month} product={product} />
           ) : tab === "forecast" ? (
@@ -316,13 +323,14 @@ function fmtEUR(n: number) {
   return Math.round(n).toLocaleString("fr-FR") + " EUR";
 }
 
-function buildData(year: Year, month: Month, product: Product) {
-  const seed = hash(`${year}|${month}|${product}`);
+function buildData(year: Year, month: Month, product: Product, store: Store) {
+  const seed = hash(`${year}|${month}|${product}|${store}`);
   const yearMult = year === "2023" ? 0.55 : year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
   const productMult =
     product === "All products" ? 1
     : product === "Lunch" ? 0.7
     : 0.3;
+  const storeMult = STORE_WEIGHTS[store];
 
   const yearNum = parseInt(year, 10);
   const isCurrentYear = yearNum === TODAY_YEAR;
@@ -337,7 +345,7 @@ function buildData(year: Year, month: Month, product: Product) {
     const monthsArr = MONTH_LABELS.slice(0, Math.max(0, lastIdx + 1));
     bars = monthsArr.map((m, i) => {
       const v = 600 + rand(seed, i + 1) * 900;
-      return { label: m, value: Math.round(v * yearMult * productMult) };
+      return { label: m, value: Math.round(v * yearMult * productMult * storeMult) };
     });
   } else {
     mode = "daily";
@@ -348,7 +356,7 @@ function buildData(year: Year, month: Month, product: Product) {
       : total;
     bars = Array.from({ length: lastDay }, (_, i) => {
       const v = 20 + rand(seed, i + 1) * 60;
-      return { label: String(i + 1), value: Math.round(v * yearMult * productMult) };
+      return { label: String(i + 1), value: Math.round(v * yearMult * productMult * storeMult) };
     });
   }
   const total = bars.reduce((s, b) => s + b.value, 0);
@@ -358,9 +366,9 @@ function buildData(year: Year, month: Month, product: Product) {
   ];
   const employers = [0, 1, 2].map((i) => {
     const name = employerPool[Math.floor(rand(seed, 50 + i) * employerPool.length)];
-    const clients = 8 + Math.floor(rand(seed, 60 + i) * 25);
+    const clients = Math.max(1, Math.round((8 + Math.floor(rand(seed, 60 + i) * 25)) * storeMult));
     const value = 60 + rand(seed, 70 + i) * 110;
-    return { name, clients: `${clients} clients`, value: fmtEUR(value * productMult) };
+    return { name, clients: `${clients} clients`, value: fmtEUR(value * productMult * storeMult) };
   });
   // de-dupe names
   const seen = new Set<string>();
@@ -372,8 +380,8 @@ function buildData(year: Year, month: Month, product: Product) {
     return { ...e, name: n };
   });
 
-  const newClients = 20 + Math.floor(rand(seed, 11) * 60 * yearMult);
-  const knownClients = 90 + Math.floor(rand(seed, 12) * 120 * yearMult);
+  const newClients = Math.max(1, Math.round((20 + Math.floor(rand(seed, 11) * 60 * yearMult)) * storeMult));
+  const knownClients = Math.max(1, Math.round((90 + Math.floor(rand(seed, 12) * 120 * yearMult)) * storeMult));
   const avgBasket = Math.round((15 + rand(seed, 13) * 25) * (productMult * 1.4 + 0.3));
 
   const mkDelta = (k: number) => {
@@ -397,8 +405,8 @@ function buildData(year: Year, month: Month, product: Product) {
   };
 }
 
-function SalesTab({ year, month, product }: { year: Year; month: Month; product: Product }) {
-  const data = buildData(year, month, product);
+function SalesTab({ year, month, product, store }: { year: Year; month: Month; product: Product; store: Store }) {
+  const data = buildData(year, month, product, store);
   const [hover, setHover] = useState<number | null>(null);
   const bars = data.bars;
   const max = Math.max(...bars.map((b) => b.value), 1);
@@ -623,10 +631,11 @@ function ClientCell({
   );
 }
 
-function BenchmarkTab({ year, month, product }: { year: Year; month: Month; product: Product }) {
-  const seed = hash(`bench|${year}|${month}|${product}`);
+function BenchmarkTab({ year, month, product, store }: { year: Year; month: Month; product: Product; store: Store }) {
+  const seed = hash(`bench|${year}|${month}|${product}|${store}`);
   const yearMult = year === "2023" ? 0.55 : year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
   const productMult = product === "All products" ? 1 : product === "Lunch" ? 0.7 : 0.3;
+  const storeMult = STORE_WEIGHTS[store];
 
   const yearNum = parseInt(year, 10);
   const isCurrentYear = yearNum === TODAY_YEAR;
@@ -640,8 +649,9 @@ function BenchmarkTab({ year, month, product }: { year: Year; month: Month; prod
     const lastIdx = isCurrentYear ? TODAY_MONTH_IDX - 1 : 11;
     const monthsArr = MONTH_LABELS.slice(0, Math.max(0, lastIdx + 1));
     pairs = monthsArr.map((m, i) => {
-      const mine = Math.round((500 + rand(seed, i + 1) * 900) * yearMult * productMult);
-      const peers = Math.round(mine * (0.75 + rand(seed, 80 + i) * 0.5));
+      const mine = Math.round((500 + rand(seed, i + 1) * 900) * yearMult * productMult * storeMult);
+      const peerBase = Math.round((500 + rand(seed, i + 1) * 900) * yearMult * productMult);
+      const peers = Math.round(peerBase * (0.75 + rand(seed, 80 + i) * 0.5));
       return { label: m, mine, peers };
     });
   } else {
@@ -652,8 +662,9 @@ function BenchmarkTab({ year, month, product }: { year: Year; month: Month; prod
       ? Math.max(0, TODAY_DAY - 1)
       : total;
     pairs = Array.from({ length: lastDay }, (_, i) => {
-      const mine = Math.round((20 + rand(seed, i + 1) * 60) * yearMult * productMult);
-      const peers = Math.round(mine * (0.75 + rand(seed, 80 + i) * 0.5));
+      const mine = Math.round((20 + rand(seed, i + 1) * 60) * yearMult * productMult * storeMult);
+      const peerBase = Math.round((20 + rand(seed, i + 1) * 60) * yearMult * productMult);
+      const peers = Math.round(peerBase * (0.75 + rand(seed, 80 + i) * 0.5));
       return { label: String(i + 1), mine, peers };
     });
   }
@@ -679,8 +690,9 @@ function BenchmarkTab({ year, month, product }: { year: Year; month: Month; prod
   const labelStride = mode === "monthly" ? 1 : n <= 16 ? 1 : n <= 24 ? 3 : 5;
 
   const peersCount = 40 + Math.floor(rand(seed, 200) * 10);
-  const mkKpi = (k: number, baseMine: number, basePeer: number, suffix = "") => {
-    const mine = Math.round(baseMine * (0.9 + rand(seed, 300 + k) * 0.3));
+  const mkKpi = (k: number, baseMine: number, basePeer: number, suffix = "", scaleMine = true) => {
+    const mineRaw = baseMine * (0.9 + rand(seed, 300 + k) * 0.3) * (scaleMine ? storeMult : 1);
+    const mine = Math.max(1, Math.round(mineRaw));
     const peer = Math.round(basePeer * (0.9 + rand(seed, 400 + k) * 0.3));
     const dMine = (rand(seed, 500 + k) - 0.3) * 30;
     const dPeer = (rand(seed, 600 + k) - 0.4) * 20;
@@ -695,7 +707,7 @@ function BenchmarkTab({ year, month, product }: { year: Year; month: Month; prod
   };
   const newC = mkKpi(1, 45, 38);
   const knownC = mkKpi(2, 145, 132);
-  const basket = mkKpi(3, 15, 19, " EUR");
+  const basket = mkKpi(3, 15, 19, " EUR", false);
 
   return (
     <>
@@ -1103,7 +1115,7 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
   );
 }
 
-function ForecastTab({ year, month, store }: { year: string; month: string; store: string }) {
+function ForecastTab({ year, month, store }: { year: string; month: string; store: Store }) {
   const [scenario, setScenario] = useState<"Conservative" | "Base" | "Optimistic">("Base");
   const [horizon, setHorizon] = useState<"4 weeks" | "8 weeks" | "12 weeks">("8 weeks");
 
@@ -1115,12 +1127,13 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
     return Math.round(lo + f * (hi - lo));
   };
   const scenarioMult = scenario === "Optimistic" ? 1.12 : scenario === "Conservative" ? 0.88 : 1;
-  const thisWeek = Math.round(r(1, 7400, 9800) * scenarioMult);
-  const peak = Math.round(r(2, 10400, 12600) * scenarioMult);
+  const storeMult = STORE_WEIGHTS[store];
+  const thisWeek = Math.round(r(1, 7400, 9800) * scenarioMult * storeMult);
+  const peak = Math.round(r(2, 10400, 12600) * scenarioMult * storeMult);
   const peakWk = r(3, 1, 4);
-  const trough = Math.round(r(4, 5800, 7400) * scenarioMult);
+  const trough = Math.round(r(4, 5800, 7400) * scenarioMult * storeMult);
   const troughWk = r(5, 5, 8);
-  const projected = Math.round(r(6, 95000, 145000) * scenarioMult);
+  const projected = Math.round(r(6, 95000, 145000) * scenarioMult * storeMult);
   const horizonWeeks = horizon === "4 weeks" ? 4 : horizon === "12 weeks" ? 12 : 8;
   const fmt = (n: number) => `${n.toLocaleString("fr-FR").replace(/\u202f/g, " ")} EUR`;
 
