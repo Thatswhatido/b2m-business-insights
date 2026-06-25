@@ -908,7 +908,7 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
   const chartW = 680;
   const chartH = 220;
   const left = 48;
-  const topY = 20;
+  const topY = 50;
   const baseY = 175;
   const usableH = baseY - topY;
   const innerW = chartW - left - 16;
@@ -1019,8 +1019,8 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
             {/* Outperform badge near last point */}
             {(() => {
               const last = trend[trend.length - 1];
-              const x = xAt(trend.length - 1) - 110;
-              const y = yAt(last.mine) - 38;
+              const x = Math.min(xAt(trend.length - 1) - 110, chartW - 8 - 104);
+              const y = Math.max(2, yAt(last.mine) - 44);
               return (
                 <g>
                   <rect x={x} y={y} width={104} height={36} rx={6}
