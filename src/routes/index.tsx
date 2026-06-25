@@ -103,7 +103,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const STORES = ["All stores", "Center", "Issy", "Blanche"] as const;
-const YEARS = ["2024", "2025", "2026"] as const;
+const YEARS = ["2023", "2024", "2025", "2026"] as const;
 const MONTHS = [
   "All months",
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
@@ -302,7 +302,7 @@ function fmtEUR(n: number) {
 
 function buildData(year: Year, month: Month, product: Product) {
   const seed = hash(`${year}|${month}|${product}`);
-  const yearMult = year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
+  const yearMult = year === "2023" ? 0.55 : year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
   const productMult =
     product === "All products" ? 1
     : product === "Lunch" ? 0.7
