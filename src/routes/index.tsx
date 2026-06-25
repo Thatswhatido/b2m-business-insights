@@ -225,24 +225,21 @@ function Dashboard() {
             <div className="tab-badge">B</div>
           </div>
 
-          {/* Filters */}
-          {tab !== "forecast" && (
-            <div className="filter-row">
-              <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
-              <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
-              {tab !== "sector" && (
-                <div className="filter-right">
-                  <Dropdown
-                    value={product}
-                    options={PRODUCTS}
-                    onChange={setProduct}
-                    className="product-select"
-                    menuAlign="right"
-                  />
-                </div>
-              )}
-            </div>
-          )}
+          <div className="filter-row">
+            <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
+            <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
+            {tab !== "sector" && tab !== "forecast" && (
+              <div className="filter-right">
+                <Dropdown
+                  value={product}
+                  options={PRODUCTS}
+                  onChange={setProduct}
+                  className="product-select"
+                  menuAlign="right"
+                />
+              </div>
+            )}
+          </div>
 
           {tab === "sales" ? (
             <SalesTab year={year} month={month} product={product} />
@@ -251,7 +248,7 @@ function Dashboard() {
           ) : tab === "sector" ? (
             <SectorHealthTab year={year} month={month} product={product} />
           ) : tab === "forecast" ? (
-            <ForecastTab />
+            <ForecastTab year={year} month={month} store={store} />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
@@ -1106,9 +1103,38 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
   );
 }
 
-function ForecastTab() {
+function ForecastTab({ year, month, store }: { year: string; month: string; store: string }) {
   const [scenario, setScenario] = useState<"Conservative" | "Base" | "Optimistic">("Base");
   const [horizon, setHorizon] = useState<"4 weeks" | "8 weeks" | "12 weeks">("8 weeks");
+
+  // Deterministic mock based on filters
+  const seed = (year + "|" + month + "|" + store + "|" + horizon).split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const r = (i: number, lo: number, hi: number) => {
+    const x = Math.sin(seed * 9301 + i * 49297) * 23380;
+    const f = x - Math.floor(x);
+    return Math.round(lo + f * (hi - lo));
+  };
+  const scenarioMult = scenario === "Optimistic" ? 1.12 : scenario === "Conservative" ? 0.88 : 1;
+  const thisWeek = Math.round(r(1, 7400, 9800) * scenarioMult);
+  const peak = Math.round(r(2, 10400, 12600) * scenarioMult);
+  const peakWk = r(3, 1, 4);
+  const trough = Math.round(r(4, 5800, 7400) * scenarioMult);
+  const troughWk = r(5, 5, 8);
+  const projected = Math.round(r(6, 95000, 145000) * scenarioMult);
+  const horizonWeeks = horizon === "4 weeks" ? 4 : horizon === "12 weeks" ? 12 : 8;
+  const fmt = (n: number) => `${n.toLocaleString("fr-FR").replace(/\u202f/g, " ")} EUR`;
+
+  // Scenario-driven dotted line position: optimistic = top edge of band, conservative = bottom, base = middle
+  const forecastPath = scenario === "Optimistic"
+    ? "M299,113 C320,108 335,96 350,90 C365,84 385,48 401,52 C417,56 435,68 452,78 C469,88 487,96 503,104 C519,112 535,128 554,142 C573,156 590,138 605,128 C620,118 638,110 656,116 C674,122 690,102 707,72"
+    : scenario === "Conservative"
+    ? "M299,133 C320,128 335,128 350,120 C365,114 385,78 401,82 C417,86 435,98 452,108 C469,118 487,126 503,134 C519,142 535,158 554,172 C573,186 590,168 605,158 C620,148 638,140 656,146 C674,152 690,166 707,140"
+    : "M299,123 C320,118 335,111 350,105 C365,99 385,77 401,67 C417,72 435,84 452,93 C469,102 487,110 503,119 C519,128 535,143 554,157 C573,171 590,153 605,143 C620,133 638,126 656,131 C674,136 690,116 707,106";
+  const forecastDots: [number, number][] = scenario === "Optimistic"
+    ? [[350,90],[401,52],[452,78],[503,104],[554,142],[605,128],[656,116],[707,72]]
+    : scenario === "Conservative"
+    ? [[350,120],[401,82],[452,108],[503,134],[554,172],[605,158],[656,146],[707,140]]
+    : [[350,105],[401,67],[452,93],[503,119],[554,157],[605,143],[656,131],[707,106]];
 
   return (
     <>
@@ -1149,23 +1175,23 @@ function ForecastTab() {
       <div className="kpi-grid-4">
         <div className="kpi-card">
           <p className="kpi-label">This week actual</p>
-          <p className="kpi-value">8 640 EUR</p>
+          <p className="kpi-value">{fmt(thisWeek)}</p>
           <p className="kpi-caption">Wk 18 · in progress</p>
         </div>
         <div className="kpi-card highlight-success">
           <p className="kpi-label">Forecast peak</p>
-          <p className="kpi-value text-success">11 200 EUR</p>
-          <p className="kpi-caption">Wk +2 · budget load</p>
+          <p className="kpi-value text-success">{fmt(peak)}</p>
+          <p className="kpi-caption">Wk +{peakWk} · budget load</p>
         </div>
         <div className="kpi-card highlight-danger">
           <p className="kpi-label">Forecast trough</p>
-          <p className="kpi-value text-danger">6 800 EUR</p>
-          <p className="kpi-caption">Wk +6 · sector contraction</p>
+          <p className="kpi-value text-danger">{fmt(trough)}</p>
+          <p className="kpi-caption">Wk +{troughWk} · sector contraction</p>
         </div>
         <div className="kpi-card">
           <p className="kpi-label">Projected total</p>
-          <p className="kpi-value">120 940 EUR</p>
-          <p className="kpi-caption">Next 8 weeks</p>
+          <p className="kpi-value">{fmt(projected)}</p>
+          <p className="kpi-caption">Next {horizonWeeks} weeks · {store}{month !== "All months" ? ` · ${month} ${year}` : ` · ${year}`}</p>
         </div>
       </div>
 
@@ -1174,7 +1200,7 @@ function ForecastTab() {
         <div className="forecast-chart-header">
           <div>
             <p className="forecast-chart-title">Revenue projection</p>
-            <p className="forecast-chart-subtitle">Actual + 8-week forecast · {scenario.toLowerCase()} scenario</p>
+            <p className="forecast-chart-subtitle">Actual + {horizonWeeks}-week forecast · {scenario.toLowerCase()} scenario · {store}</p>
           </div>
           <div className="forecast-legend">
             <span><span className="legend-line" />Actual</span>
@@ -1259,9 +1285,9 @@ function ForecastTab() {
             strokeWidth="2.2"
             strokeDasharray="6 3"
             strokeLinecap="round"
-            d="M299,123 C320,118 335,111 350,105 C365,99 385,77 401,67 C417,72 435,84 452,93 C469,102 487,110 503,119 C519,128 535,143 554,157 C573,171 590,153 605,143 C620,133 638,126 656,131 C674,136 690,116 707,106"
+            d={forecastPath}
           />
-          {[[350,105],[401,67],[452,93],[503,119],[554,157],[605,143],[656,131],[707,106]].map(([x, y]) => (
+          {forecastDots.map(([x, y]) => (
             <rect key={`f${x}`} x={x - 4} y={y - 4} width="8" height="8" rx="2" fill="#4FC3D9" stroke="white" strokeWidth="1.5" />
           ))}
 
