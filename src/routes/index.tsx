@@ -108,12 +108,35 @@ function Dashboard() {
         <main className="main">
           <div className="page-header">
             <h1 className="page-title">Business insights</h1>
-            <div className="store-select">
-              <span>All stores</span>
-              <i
-                className="ti ti-chevron-down"
-                style={{ fontSize: 14, color: "var(--text-tertiary)" }}
-              />
+            <div className="store-select-wrap" ref={storeRef}>
+              <div
+                className="store-select"
+                onClick={() => setStoreOpen((v) => !v)}
+                role="button"
+                tabIndex={0}
+              >
+                <span>{store}</span>
+                <i
+                  className="ti ti-chevron-down"
+                  style={{ fontSize: 14, color: "var(--text-tertiary)" }}
+                />
+              </div>
+              {storeOpen && (
+                <div className="store-menu">
+                  {STORES.map((s) => (
+                    <div
+                      key={s}
+                      className={`store-menu-item${s === store ? " active" : ""}`}
+                      onClick={() => {
+                        setStore(s);
+                        setStoreOpen(false);
+                      }}
+                    >
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
