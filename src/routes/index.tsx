@@ -1562,11 +1562,8 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
           <p className={`kpi-value ${pct < 0 ? "text-danger" : "text-success"}`}>{fmtPct(pct)}</p>
           <p className="kpi-caption">{diff > 0 ? "+" : ""}{fmtEUR(diff)}</p>
         </div>
-        <div className="kpi-card">
-          <p className="kpi-label">Sector change</p>
-          <p className="kpi-value kpi-value-muted">{fmtPct(sectorPct)}</p>
-          <p className="kpi-caption">Brussels restaurants</p>
-        </div>
+
+
       </div>
 
       {/* Weekly revenue chart */}
