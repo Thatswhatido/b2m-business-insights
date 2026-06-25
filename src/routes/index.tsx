@@ -649,8 +649,9 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
     const lastIdx = isCurrentYear ? TODAY_MONTH_IDX - 1 : 11;
     const monthsArr = MONTH_LABELS.slice(0, Math.max(0, lastIdx + 1));
     pairs = monthsArr.map((m, i) => {
-      const mine = Math.round((500 + rand(seed, i + 1) * 900) * yearMult * productMult);
-      const peers = Math.round(mine * (0.75 + rand(seed, 80 + i) * 0.5));
+      const mine = Math.round((500 + rand(seed, i + 1) * 900) * yearMult * productMult * storeMult);
+      const peerBase = Math.round((500 + rand(seed, i + 1) * 900) * yearMult * productMult);
+      const peers = Math.round(peerBase * (0.75 + rand(seed, 80 + i) * 0.5));
       return { label: m, mine, peers };
     });
   } else {
@@ -661,8 +662,9 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
       ? Math.max(0, TODAY_DAY - 1)
       : total;
     pairs = Array.from({ length: lastDay }, (_, i) => {
-      const mine = Math.round((20 + rand(seed, i + 1) * 60) * yearMult * productMult);
-      const peers = Math.round(mine * (0.75 + rand(seed, 80 + i) * 0.5));
+      const mine = Math.round((20 + rand(seed, i + 1) * 60) * yearMult * productMult * storeMult);
+      const peerBase = Math.round((20 + rand(seed, i + 1) * 60) * yearMult * productMult);
+      const peers = Math.round(peerBase * (0.75 + rand(seed, 80 + i) * 0.5));
       return { label: String(i + 1), mine, peers };
     });
   }
