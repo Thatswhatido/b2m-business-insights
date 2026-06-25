@@ -1483,15 +1483,20 @@ const PERIOD_OPTIONS = [
 type PeriodOpt = (typeof PERIOD_OPTIONS)[number];
 
 function ComparisonTab({ year, month, store }: { year: string; month: string; store: Store }) {
-  const [periodA, setPeriodA] = useState<PeriodOpt>("Q3 2025");
-  const [periodB, setPeriodB] = useState<PeriodOpt>("Q4 2025");
-  const [quick, setQuick] = useState<"Last quarter" | "Year over year" | "Custom">("Custom");
+  const [yearA, setYearA] = useState<Year>("2025");
+  const [monthA, setMonthA] = useState<Month>("All months");
+  const [yearB, setYearB] = useState<Year>("2026");
+  const [monthB, setMonthB] = useState<Month>("All months");
+  const [quick, setQuick] = useState<"Last year" | "Year over year" | "Custom">("Custom");
 
   const handleQuick = (q: typeof quick) => {
     setQuick(q);
-    if (q === "Last quarter") { setPeriodA("Q3 2025"); setPeriodB("Q4 2025"); }
-    else if (q === "Year over year") { setPeriodA("Q1 2025"); setPeriodB("Q1 2026"); }
+    if (q === "Last year") { setYearA("2024"); setMonthA("All months"); setYearB("2025"); setMonthB("All months"); }
+    else if (q === "Year over year") { setYearA("2025"); setMonthA("Jan"); setYearB("2026"); setMonthB("Jan"); }
   };
+
+  const periodA = `${monthA === "All months" ? "" : monthA + " "}${yearA}`.trim();
+  const periodB = `${monthB === "All months" ? "" : monthB + " "}${yearB}`.trim();
 
   const storeMult = STORE_WEIGHTS[store];
   const seed = hash(`cmp|${year}|${month}|${store}|${periodA}|${periodB}`);
@@ -1504,7 +1509,6 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
   const revB = Math.round(r(2, 38000, 46000) * storeMult);
   const diff = revB - revA;
   const pct = (diff / revA) * 100;
-  const sectorPct = -9 + (r(3, -1.5, 1.5));
 
   const txA = Math.round(r(4, 2900, 3400) * storeMult);
   const txB = Math.round(r(5, 2600, 3100) * storeMult);
@@ -1518,7 +1522,6 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
   const pctDelta = (a: number, b: number) => ((b - a) / Math.max(1, a)) * 100;
   const fmtPct = (n: number) => `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
 
-  // Build chart values per week (Wk1..Wk6) for A and B
   const weeksA = Array.from({ length: 6 }, (_, i) => r(20 + i, 5800, 9200) * storeMult);
   const weeksB = Array.from({ length: 6 }, (_, i) => r(30 + i, 5000, 8200) * storeMult);
   const all = [...weeksA, ...weeksB];
@@ -1535,15 +1538,21 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
       <div className="period-selector">
         <div className="period-block period-a">
           <p className="period-label">Period A</p>
-          <Dropdown value={periodA} options={PERIOD_OPTIONS} onChange={(v) => { setPeriodA(v as PeriodOpt); setQuick("Custom"); }} icon="ti-calendar" />
+          <div style={{ display: "flex", gap: 8 }}>
+            <Dropdown value={yearA} options={YEARS} onChange={(v) => { setYearA(v as Year); setQuick("Custom"); }} icon="ti-calendar" />
+            <Dropdown value={monthA} options={MONTHS} onChange={(v) => { setMonthA(v as Month); setQuick("Custom"); }} icon="ti-calendar" />
+          </div>
         </div>
         <div className="period-vs">vs</div>
         <div className="period-block period-b">
           <p className="period-label">Period B</p>
-          <Dropdown value={periodB} options={PERIOD_OPTIONS} onChange={(v) => { setPeriodB(v as PeriodOpt); setQuick("Custom"); }} icon="ti-calendar" />
+          <div style={{ display: "flex", gap: 8 }}>
+            <Dropdown value={yearB} options={YEARS} onChange={(v) => { setYearB(v as Year); setQuick("Custom"); }} icon="ti-calendar" />
+            <Dropdown value={monthB} options={MONTHS} onChange={(v) => { setMonthB(v as Month); setQuick("Custom"); }} icon="ti-calendar" />
+          </div>
         </div>
         <div className="period-quick">
-          {(["Last quarter", "Year over year", "Custom"] as const).map((q) => (
+          {(["Last year", "Year over year", "Custom"] as const).map((q) => (
             <button key={q} type="button" className={`quick-btn${quick === q ? " active" : ""}`} onClick={() => handleQuick(q)}>{q}</button>
           ))}
         </div>
