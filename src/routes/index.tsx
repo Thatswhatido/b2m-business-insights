@@ -48,8 +48,21 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
+const STORES = ["All stores", "Center", "Issy", "Blanche"] as const;
+
 function Dashboard() {
   const [tab, setTab] = useState<TabId>("sales");
+  const [store, setStore] = useState<(typeof STORES)[number]>("All stores");
+  const [storeOpen, setStoreOpen] = useState(false);
+  const storeRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!storeOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (storeRef.current && !storeRef.current.contains(e.target as Node)) setStoreOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [storeOpen]);
 
   return (
     <div className="pluxee-app">
