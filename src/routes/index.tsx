@@ -1165,10 +1165,6 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
           </div>
         </div>
         <div style={{ flex: 1 }} />
-        <button type="button" className="btn-alert">
-          <i className="ti ti-bell" />
-          Set alert
-        </button>
       </div>
 
       {/* KPI cards */}
