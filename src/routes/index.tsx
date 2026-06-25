@@ -244,6 +244,8 @@ function Dashboard() {
             <SalesTab year={year} month={month} product={product} />
           ) : tab === "benchmark" ? (
             <BenchmarkTab year={year} month={month} product={product} />
+          ) : tab === "sector" ? (
+            <SectorHealthTab year={year} month={month} product={product} />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
@@ -857,6 +859,247 @@ function BenchKpi({
   );
 }
 
+function SectorHealthTab({ year, month, product }: { year: Year; month: Month; product: Product }) {
+  const seed = hash(`sector|${year}|${month}|${product}`);
+  const yearMult = year === "2023" ? 0.55 : year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
+
+  // Build 4-quarter rolling trend (you vs sector avg)
+  const quarters = ["Q2 2025", "Q3 2025", "Q4 2025", "Q1 2026"];
+  const trend = quarters.map((q, i) => {
+    const mine = Math.round((95 + rand(seed, i + 1) * 25) * yearMult);
+    const sector = Math.round((100 - i * 8 + rand(seed, 30 + i) * 6) * yearMult);
+    return { label: q, mine, sector };
+  });
+
+  // Sector volume change (current vs previous) — drives the banner
+  const sectorChange = Math.round((-4 - rand(seed, 80) * 8) * (product === "Eco" ? 0.5 : 1));
+  const yourChange = Math.round(sectorChange + 4 + rand(seed, 81) * 6); // outperform
+  const gapPts = yourChange - sectorChange;
+
+  const rank = 8 + Math.floor(rand(seed, 90) * 25);
+  const rankMoved = 2 + Math.floor(rand(seed, 91) * 6);
+  const merchants = 1100 + Math.floor(rand(seed, 92) * 300);
+  const merchantsChange = -(1 + Math.floor(rand(seed, 93) * 5));
+  const avgBasket = 14 + Math.floor(rand(seed, 94) * 7);
+  const basketChange = (rand(seed, 95) * 3).toFixed(1);
+
+  const sectors = [
+    { name: "Restaurants", delta: sectorChange },
+    { name: "Pharmacy", delta: -1 },
+    { name: "Coffee shops", delta: 4 },
+    { name: "Grocery", delta: 11 },
+    { name: "Books and media", delta: 2 },
+  ];
+  const maxAbs = Math.max(...sectors.map((s) => Math.abs(s.delta)), 1);
+
+  const regions = [
+    { name: "Antwerp", caption: "Restaurants sector", delta: -6 },
+    { name: "Ghent", caption: "Restaurants sector", delta: -4 },
+    { name: "Liège", caption: "Restaurants sector", delta: 2 },
+    { name: "Charleroi", caption: "Restaurants sector", delta: 0 },
+  ];
+
+  const max = Math.max(...trend.flatMap((t) => [t.mine, t.sector]), 1);
+  const min = Math.min(...trend.flatMap((t) => [t.mine, t.sector]), 0);
+  const chartW = 680;
+  const chartH = 220;
+  const left = 48;
+  const topY = 20;
+  const baseY = 175;
+  const usableH = baseY - topY;
+  const innerW = chartW - left - 16;
+  const xAt = (i: number) => left + (innerW / (trend.length - 1)) * i;
+  const yAt = (v: number) => baseY - ((v - min) / (max - min || 1)) * usableH;
+  const ticks = [max, max * 0.66 + min * 0.34, max * 0.33 + min * 0.67, min];
+
+  const pointsMine = trend.map((t, i) => `${xAt(i)},${yAt(t.mine)}`).join(" ");
+  const pointsSector = trend.map((t, i) => `${xAt(i)},${yAt(t.sector)}`).join(" ");
+
+  const sign = (n: number) => (n > 0 ? `+${n}%` : `${n}%`);
+  const deltaCls = (n: number) => (n > 0 ? "up" : n < 0 ? "down" : "flat");
+
+  return (
+    <>
+      {/* Sector contraction banner */}
+      <div className="sector-banner danger">
+        <div className="sector-banner-icon"><i className="ti ti-trending-down" /></div>
+        <div className="sector-banner-body">
+          <div className="sector-banner-title">
+            Restaurant voucher volume in Brussels is down {Math.abs(sectorChange)}% this quarter
+          </div>
+          <div className="sector-banner-desc">
+            The sector is contracting. Your performance should be read in that context.
+          </div>
+        </div>
+        <div className="sector-banner-metric">
+          <div className="sector-banner-value">{sectorChange}%</div>
+          <div className="sector-banner-caption">vs previous quarter</div>
+        </div>
+      </div>
+
+      {/* 4 KPI cards */}
+      <div className="sector-kpi-grid">
+        <div className="section sector-kpi">
+          <div className="bench-kpi-label">Your volume change</div>
+          <div className="bench-kpi-value">{sign(yourChange)}</div>
+          <div className="bench-kpi-caption">vs last quarter</div>
+          <div className="delta up" style={{ marginTop: 6 }}>Outperforming sector by {gapPts} pts</div>
+        </div>
+        <div className="section sector-kpi">
+          <div className="bench-kpi-label">Your volume rank</div>
+          <div className="bench-kpi-value">Top {rank}%</div>
+          <div className="bench-kpi-caption">Brussels restaurants</div>
+          <div className="delta up" style={{ marginTop: 6 }}>↗ Up {rankMoved} places</div>
+        </div>
+        <div className="section sector-kpi">
+          <div className="bench-kpi-label">Active merchants</div>
+          <div className="bench-kpi-value">{merchants.toLocaleString("fr-FR")}</div>
+          <div className="bench-kpi-caption">In your sector</div>
+          <div className="delta down" style={{ marginTop: 6 }}>↘ {merchantsChange}% vs prev. quarter</div>
+        </div>
+        <div className="section sector-kpi">
+          <div className="bench-kpi-label">Sector avg basket</div>
+          <div className="bench-kpi-value">{avgBasket} EUR</div>
+          <div className="bench-kpi-caption">Brussels restaurants</div>
+          <div className="delta up" style={{ marginTop: 6 }}>↗ +{basketChange}%</div>
+        </div>
+      </div>
+
+      {/* Trend chart */}
+      <div className="section">
+        <div className="section-title" style={{ justifyContent: "space-between" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Voucher volume trend
+            <InfoTip text="4 quarters rolling. Compares your store's volume index against the sector average for Brussels restaurants. Baseline = 100." />
+          </span>
+          <span className="bench-legend">
+            <span><span className="legend-dot" style={{ background: "var(--navy)" }} />Your store</span>
+            <span><span className="legend-dot legend-dot-dashed" />Sector avg</span>
+          </span>
+        </div>
+        <div className="section-subtle">Your store vs sector average · 4 quarters rolling</div>
+
+        <div className="chart-area" style={{ marginTop: 12 }}>
+          <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: 220 }} role="img" aria-label="Voucher volume trend">
+            <g stroke="rgba(26,31,60,0.08)" strokeWidth="0.5">
+              {ticks.map((_, i) => {
+                const y = topY + (usableH * i) / 3;
+                return <line key={i} x1={left} y1={y} x2={chartW - 8} y2={y} />;
+              })}
+            </g>
+            <g fontSize="9.5" fill="#9B9A95" fontFamily="Inter, sans-serif" textAnchor="end">
+              {ticks.map((t, i) => {
+                const y = topY + (usableH * i) / 3 + 4;
+                return <text key={i} x={40} y={y}>{Math.round(t)}</text>;
+              })}
+            </g>
+
+            {/* Sector line (dashed, red/amber) */}
+            <polyline fill="none" stroke="#C0392B" strokeWidth="2" strokeDasharray="5 4" points={pointsSector} />
+            {trend.map((t, i) => (
+              <circle key={`s${i}`} cx={xAt(i)} cy={yAt(t.sector)} r={3.5} fill="#C0392B" />
+            ))}
+
+            {/* Your line (navy solid) */}
+            <polyline fill="none" stroke="var(--navy)" strokeWidth="2.5" points={pointsMine} />
+            {trend.map((t, i) => (
+              <circle key={`m${i}`} cx={xAt(i)} cy={yAt(t.mine)} r={4} fill="var(--navy)" />
+            ))}
+
+            <g fontSize="10" fill="#5F5E5A" fontFamily="Inter, sans-serif" textAnchor="middle">
+              {trend.map((t, i) => (
+                <text key={t.label} x={xAt(i)} y={baseY + 22}>{t.label}</text>
+              ))}
+            </g>
+
+            {/* Outperform badge near last point */}
+            {(() => {
+              const last = trend[trend.length - 1];
+              const x = xAt(trend.length - 1) - 110;
+              const y = yAt(last.mine) - 38;
+              return (
+                <g>
+                  <rect x={x} y={y} width={104} height={36} rx={6}
+                    fill="rgba(30,215,96,0.14)" stroke="var(--green-dark)" strokeWidth="0.5" />
+                  <text x={x + 52} y={y + 15} fontSize="10.5" fontWeight="600" fill="#176A2C" fontFamily="Inter, sans-serif" textAnchor="middle">
+                    You: {sign(yourChange)}
+                  </text>
+                  <text x={x + 52} y={y + 28} fontSize="10" fill="#176A2C" fontFamily="Inter, sans-serif" textAnchor="middle">
+                    Sector: {sign(sectorChange)}
+                  </text>
+                </g>
+              );
+            })()}
+          </svg>
+        </div>
+      </div>
+
+      {/* Two-column: sector breakdown + neighbouring regions */}
+      <div className="sector-two-col">
+        <div className="section">
+          <div className="section-title" style={{ marginBottom: 12 }}>
+            <i className="ti ti-list-details" style={{ fontSize: 16, color: "var(--text-secondary)" }} />
+            Sector breakdown · Brussels
+          </div>
+          {sectors.map((s) => (
+            <div className="sector-row" key={s.name}>
+              <span className="sector-name">{s.name}</span>
+              <div className="sector-bar-wrap">
+                <div
+                  className={`sector-bar ${s.delta >= 0 ? "pos" : "neg"}`}
+                  style={{ width: `${Math.max(6, (Math.abs(s.delta) / maxAbs) * 100)}%` }}
+                />
+              </div>
+              <span className={`sector-delta ${deltaCls(s.delta)}`}>{sign(s.delta)}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="section">
+          <div className="section-title" style={{ marginBottom: 12 }}>
+            <i className="ti ti-map-pin" style={{ fontSize: 16, color: "var(--text-secondary)" }} />
+            Neighbouring regions
+          </div>
+          {regions.map((r) => (
+            <div className="region-row" key={r.name}>
+              <div>
+                <div className="region-name">{r.name}</div>
+                <div className="region-caption">{r.caption}</div>
+              </div>
+              <div className={`region-delta ${deltaCls(r.delta)}`}>{sign(r.delta)}</div>
+            </div>
+          ))}
+          <div className="region-row last">
+            <div>
+              <div className="region-name">National average</div>
+              <div className="region-caption">Belgium · all restaurants</div>
+            </div>
+            <div className="region-delta down">-3%</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Insight card */}
+      <div className="insight-card">
+        <div className="insight-icon"><i className="ti ti-bulb" /></div>
+        <div>
+          <div className="insight-title">You are outperforming your sector</div>
+          <div className="insight-desc">
+            While Brussels restaurants lost {Math.abs(sectorChange)}% in volume, you only changed by {sign(yourChange)}.
+            You are gaining relative share in a contracting market. Consider locking in loyal customers
+            before the sector recovers and competition tightens.
+          </div>
+        </div>
+      </div>
+
+      <div className="info-banner">
+        <i className="ti ti-info-circle" />
+        <p>Sector data aggregated from {merchants.toLocaleString("fr-FR")} active merchants in the Brussels restaurants sector. Updated weekly.</p>
+      </div>
+    </>
+  );
+}
+
 const CSS = `
 .pluxee-app {
   --navy: #1A1F3C;
@@ -992,4 +1235,49 @@ const CSS = `
 .info-banner { display: flex; gap: 10px; align-items: flex-start; background: rgba(30,215,96,0.10); border: 0.5px solid rgba(30,215,96,0.30); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 16px; }
 .info-banner i { font-size: 16px; color: var(--green-dark); margin-top: 1px; }
 .info-banner p { margin: 0; font-size: 12.5px; color: var(--navy); line-height: 1.5; }
+
+/* Sector health */
+.sector-banner { display: flex; gap: 14px; align-items: center; padding: 16px 18px; border-radius: var(--radius-lg); margin-bottom: 16px; }
+.sector-banner.danger { background: rgba(208,49,45,0.08); border: 0.5px solid rgba(208,49,45,0.30); }
+.sector-banner-icon { width: 36px; height: 36px; border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: #A32D2D; flex-shrink: 0; }
+.sector-banner-icon i { font-size: 20px; }
+.sector-banner-body { flex: 1; }
+.sector-banner-title { font-size: 14px; font-weight: 600; color: #A32D2D; }
+.sector-banner-desc { font-size: 12px; color: #791F1F; margin-top: 2px; }
+.sector-banner-metric { text-align: right; flex-shrink: 0; }
+.sector-banner-value { font-size: 22px; font-weight: 600; color: #A32D2D; line-height: 1.1; }
+.sector-banner-caption { font-size: 11px; color: #791F1F; }
+
+.sector-kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.sector-kpi { margin-bottom: 0; padding: 16px 18px; }
+
+.legend-dot-dashed { width: 18px !important; height: 0 !important; border-top: 2px dashed #C0392B; border-radius: 0 !important; margin-right: 5px; vertical-align: middle; }
+
+.sector-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.sector-row { display: grid; grid-template-columns: 110px 1fr 52px; gap: 10px; align-items: center; padding: 9px 0; border-bottom: 0.5px solid var(--border); }
+.sector-row:last-child { border-bottom: none; }
+.sector-name { font-size: 12.5px; color: var(--text-primary); }
+.sector-bar-wrap { height: 8px; background: rgba(26,31,60,0.06); border-radius: 999px; overflow: hidden; }
+.sector-bar { height: 100%; border-radius: 999px; }
+.sector-bar.pos { background: var(--green-dark); }
+.sector-bar.neg { background: #C0392B; }
+.sector-delta { font-size: 12px; font-weight: 600; text-align: right; }
+.sector-delta.up { color: #2E7D32; }
+.sector-delta.down { color: #C0392B; }
+.sector-delta.flat { color: var(--text-secondary); }
+
+.region-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 0.5px solid var(--border); }
+.region-row.last { border-top: 0.5px solid rgba(26,31,60,0.18); border-bottom: none; margin-top: 4px; padding-top: 14px; }
+.region-name { font-size: 13px; font-weight: 500; color: var(--text-primary); }
+.region-caption { font-size: 11px; color: var(--text-secondary); margin-top: 1px; }
+.region-delta { font-size: 14px; font-weight: 600; }
+.region-delta.up { color: #2E7D32; }
+.region-delta.down { color: #C0392B; }
+.region-delta.flat { color: var(--text-secondary); }
+
+.insight-card { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; border-radius: var(--radius-lg); margin-bottom: 16px; background: rgba(30,215,96,0.10); border: 0.5px solid rgba(30,215,96,0.35); }
+.insight-icon { width: 32px; height: 32px; border-radius: 50%; background: var(--white); display: flex; align-items: center; justify-content: center; color: var(--green-dark); flex-shrink: 0; }
+.insight-icon i { font-size: 18px; }
+.insight-title { font-size: 13px; font-weight: 600; color: #176A2C; }
+.insight-desc { font-size: 12px; color: #1F4A14; line-height: 1.6; margin-top: 4px; }
 `;
