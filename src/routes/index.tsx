@@ -282,7 +282,16 @@ function SideItem({
   );
 }
 
-const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"] as const;
+const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+
+// "Today" reference for filtering future periods out of the chart.
+const TODAY_YEAR = 2026;
+const TODAY_MONTH_IDX = 5; // June (0-indexed)
+const TODAY_DAY = 25;
+
+function daysInMonth(yearNum: number, monthIdx: number) {
+  return new Date(yearNum, monthIdx + 1, 0).getDate();
+}
 
 function hash(s: string) {
   let h = 2166136261;
@@ -308,12 +317,34 @@ function buildData(year: Year, month: Month, product: Product) {
     : product === "Lunch" ? 0.7
     : 0.3;
 
-  const months = month === "All months" ? [...MONTH_LABELS] : [month];
-  const base = months.map((m, i) => {
-    const v = 600 + rand(seed, i + 1) * 900;
-    return { m, value: Math.round(v * yearMult * productMult) };
-  });
-  const total = base.reduce((s, b) => s + b.value, 0);
+  const yearNum = parseInt(year, 10);
+  const isCurrentYear = yearNum === TODAY_YEAR;
+
+  // Build bars: monthly when no month selected, daily when a month is selected.
+  let bars: { label: string; value: number }[];
+  let mode: "monthly" | "daily";
+
+  if (month === "All months") {
+    mode = "monthly";
+    const lastIdx = isCurrentYear ? TODAY_MONTH_IDX - 1 : 11; // d-1 month for current year
+    const monthsArr = MONTH_LABELS.slice(0, Math.max(0, lastIdx + 1));
+    bars = monthsArr.map((m, i) => {
+      const v = 600 + rand(seed, i + 1) * 900;
+      return { label: m, value: Math.round(v * yearMult * productMult) };
+    });
+  } else {
+    mode = "daily";
+    const monthIdx = MONTH_LABELS.indexOf(month as (typeof MONTH_LABELS)[number]);
+    const total = daysInMonth(yearNum, monthIdx);
+    const lastDay = isCurrentYear && monthIdx === TODAY_MONTH_IDX
+      ? Math.max(0, TODAY_DAY - 1)
+      : total;
+    bars = Array.from({ length: lastDay }, (_, i) => {
+      const v = 20 + rand(seed, i + 1) * 60;
+      return { label: String(i + 1), value: Math.round(v * yearMult * productMult) };
+    });
+  }
+  const total = bars.reduce((s, b) => s + b.value, 0);
 
   const employerPool = [
     "FNAC", "Proximus", "BNP", "Carrefour", "Orange", "Engie", "Decathlon", "Total", "L'Oréal",
@@ -348,7 +379,8 @@ function buildData(year: Year, month: Month, product: Product) {
 
   return {
     total,
-    months: base,
+    bars,
+    mode,
     employers: employersUniq,
     clients: {
       newClients: { value: String(newClients), delta: mkDelta(1) },
@@ -360,19 +392,25 @@ function buildData(year: Year, month: Month, product: Product) {
 
 function SalesTab({ year, month, product }: { year: Year; month: Month; product: Product }) {
   const data = buildData(year, month, product);
-  const max = Math.max(...data.months.map((m) => m.value), 1);
-  const n = data.months.length;
+  const [hover, setHover] = useState<number | null>(null);
+  const bars = data.bars;
+  const max = Math.max(...bars.map((b) => b.value), 1);
+  const n = Math.max(bars.length, 1);
   const chartW = 680;
   const chartH = 200;
   const left = 48;
   const innerW = chartW - left - 8;
   const slot = innerW / n;
-  const barW = Math.min(40, slot * 0.55);
-  const topY = 16;
+  const barW = data.mode === "monthly" ? Math.min(40, slot * 0.55) : Math.max(2, slot * 0.7);
+  const topY = 24;
   const baseY = 158;
   const usableH = baseY - topY;
 
   const ticks = [max, max * 0.66, max * 0.33, 0];
+
+  // For daily mode, sample label every Nth bar to avoid crowding.
+  const labelStride =
+    data.mode === "monthly" ? 1 : n <= 16 ? 1 : n <= 24 ? 3 : 5;
 
   return (
     <>
@@ -390,6 +428,7 @@ function SalesTab({ year, month, product }: { year: Year; month: Month; product:
             style={{ width: "100%", height: 200 }}
             role="img"
             aria-label="Bar chart of Pluxee sales"
+            onMouseLeave={() => setHover(null)}
           >
             <g stroke="rgba(26,31,60,0.08)" strokeWidth="0.5">
               {ticks.map((_, i) => {
@@ -407,24 +446,71 @@ function SalesTab({ year, month, product }: { year: Year; month: Month; product:
                 );
               })}
             </g>
-            {data.months.map((m, i) => {
-              const h = (m.value / max) * usableH;
+            {bars.map((b, i) => {
+              const h = (b.value / max) * usableH;
               const x = left + slot * i + (slot - barW) / 2;
               const y = baseY - h;
+              const isHover = hover === i;
               return (
-                <rect key={m.m + i} x={x} y={y} width={barW} height={h} rx={3} fill="var(--navy)" />
+                <g key={b.label + i}>
+                  <rect
+                    x={x}
+                    y={y}
+                    width={barW}
+                    height={h}
+                    rx={3}
+                    fill={isHover ? "var(--green)" : "var(--navy)"}
+                  />
+                  {/* invisible wider hit area for hover */}
+                  <rect
+                    x={left + slot * i}
+                    y={topY}
+                    width={slot}
+                    height={baseY - topY}
+                    fill="transparent"
+                    onMouseEnter={() => setHover(i)}
+                  />
+                </g>
               );
             })}
             <g fontSize="10" fill="#5F5E5A" fontFamily="Inter, sans-serif" textAnchor="middle">
-              {data.months.map((m, i) => (
-                <text key={m.m + i} x={left + slot * i + slot / 2} y={178}>
-                  {m.m}
-                </text>
-              ))}
+              {bars.map((b, i) =>
+                i % labelStride === 0 ? (
+                  <text key={b.label + i} x={left + slot * i + slot / 2} y={178}>
+                    {b.label}
+                  </text>
+                ) : null
+              )}
             </g>
+            {hover !== null && bars[hover] && (() => {
+              const b = bars[hover];
+              const h = (b.value / max) * usableH;
+              const cx = left + slot * hover + slot / 2;
+              const y = baseY - h - 10;
+              const label = fmtEUR(b.value);
+              const tw = Math.max(70, label.length * 5.5 + 16);
+              const tx = Math.min(Math.max(cx - tw / 2, left), chartW - tw);
+              const ty = Math.max(0, y - 18);
+              return (
+                <g pointerEvents="none">
+                  <rect x={tx} y={ty} width={tw} height={18} rx={4} fill="var(--navy)" />
+                  <text
+                    x={tx + tw / 2}
+                    y={ty + 12}
+                    fontSize="10"
+                    fill="#FFFFFF"
+                    fontFamily="Inter, sans-serif"
+                    textAnchor="middle"
+                  >
+                    {data.mode === "daily" ? `${b.label} — ${label}` : `${b.label} — ${label}`}
+                  </text>
+                </g>
+              );
+            })()}
           </svg>
         </div>
       </div>
+
 
       {/* Top employer clients */}
       <div className="section">
