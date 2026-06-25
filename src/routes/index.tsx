@@ -242,9 +242,9 @@ function Dashboard() {
           </div>
 
           {tab === "sales" ? (
-            <SalesTab year={year} month={month} product={product} />
+            <SalesTab year={year} month={month} product={product} store={store} />
           ) : tab === "benchmark" ? (
-            <BenchmarkTab year={year} month={month} product={product} />
+            <BenchmarkTab year={year} month={month} product={product} store={store} />
           ) : tab === "sector" ? (
             <SectorHealthTab year={year} month={month} product={product} />
           ) : tab === "forecast" ? (
