@@ -1594,11 +1594,8 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
             <text x="32" y="158">{Math.round(vMin / 1000)}k</text>
           </g>
 
-          {/* Sector event band Wk 4-5 */}
-          <rect x="350" y="20" width="100" height="135" fill="#E5A53A" fillOpacity="0.16" />
-          <line x1="350" y1="20" x2="350" y2="155" stroke="#BA7517" strokeWidth="0.5" strokeDasharray="3 2" />
-          <line x1="450" y1="20" x2="450" y2="155" stroke="#BA7517" strokeWidth="0.5" strokeDasharray="3 2" />
-          <text x="400" y="35" textAnchor="middle" fontSize="10" fill="#854F0B" fontWeight="500" fontFamily="Inter,sans-serif">Sector event</text>
+
+
 
           {/* Period A */}
           <polyline fill="none" stroke="var(--navy)" strokeWidth="2.2" points={ptsA} />
