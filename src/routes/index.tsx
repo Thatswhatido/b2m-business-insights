@@ -282,7 +282,7 @@ function SideItem({
   );
 }
 
-const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"] as const;
 
 function hash(s: string) {
   let h = 2166136261;
