@@ -405,8 +405,8 @@ function buildData(year: Year, month: Month, product: Product, store: Store) {
   };
 }
 
-function SalesTab({ year, month, product }: { year: Year; month: Month; product: Product }) {
-  const data = buildData(year, month, product);
+function SalesTab({ year, month, product, store }: { year: Year; month: Month; product: Product; store: Store }) {
+  const data = buildData(year, month, product, store);
   const [hover, setHover] = useState<number | null>(null);
   const bars = data.bars;
   const max = Math.max(...bars.map((b) => b.value), 1);
