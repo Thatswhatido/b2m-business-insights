@@ -282,7 +282,16 @@ function SideItem({
   );
 }
 
-const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"] as const;
+const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+
+// "Today" reference for filtering future periods out of the chart.
+const TODAY_YEAR = 2026;
+const TODAY_MONTH_IDX = 5; // June (0-indexed)
+const TODAY_DAY = 25;
+
+function daysInMonth(yearNum: number, monthIdx: number) {
+  return new Date(yearNum, monthIdx + 1, 0).getDate();
+}
 
 function hash(s: string) {
   let h = 2166136261;
