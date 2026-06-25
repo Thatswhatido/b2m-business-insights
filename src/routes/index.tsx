@@ -26,6 +26,60 @@ function InfoTip({ text }: { text: string }) {
   );
 }
 
+function Dropdown<T extends string>({
+  value,
+  options,
+  onChange,
+  icon,
+  className = "filter-select",
+  menuAlign = "left",
+  minWidth,
+}: {
+  value: T;
+  options: readonly T[];
+  onChange: (v: T) => void;
+  icon?: string;
+  className?: string;
+  menuAlign?: "left" | "right";
+  minWidth?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+  return (
+    <div className="dd-wrap" ref={ref} style={minWidth ? { minWidth } : undefined}>
+      <div className={className} onClick={() => setOpen((v) => !v)} role="button" tabIndex={0}>
+        {icon && <i className={`ti ${icon}`} />}
+        <span>{value}</span>
+        <i className="ti ti-chevron-down chevron" />
+      </div>
+      {open && (
+        <div className={`dd-menu ${menuAlign === "right" ? "right" : ""}`}>
+          {options.map((o) => (
+            <div
+              key={o}
+              className={`dd-item${o === value ? " active" : ""}`}
+              onClick={() => {
+                onChange(o);
+                setOpen(false);
+              }}
+            >
+              {o}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
@@ -49,10 +103,30 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const STORES = ["All stores", "Center", "Issy", "Blanche"] as const;
+const YEARS = ["2024", "2025", "2026"] as const;
+const MONTHS = [
+  "All months",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+] as const;
+const PRODUCTS = [
+  "All products",
+  "Meal vouchers",
+  "Gift cards",
+  "Eco vouchers",
+  "Wellness",
+] as const;
+
+type Year = (typeof YEARS)[number];
+type Month = (typeof MONTHS)[number];
+type Product = (typeof PRODUCTS)[number];
 
 function Dashboard() {
   const [tab, setTab] = useState<TabId>("sales");
   const [store, setStore] = useState<(typeof STORES)[number]>("All stores");
+  const [year, setYear] = useState<Year>("2026");
+  const [month, setMonth] = useState<Month>("All months");
+  const [product, setProduct] = useState<Product>("All products");
   const [storeOpen, setStoreOpen] = useState(false);
   const storeRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -160,29 +234,21 @@ function Dashboard() {
 
           {/* Filters */}
           <div className="filter-row">
-            <div className="filter-select">
-              <i className="ti ti-calendar" />
-              <span>2026</span>
-              <i className="ti ti-chevron-down chevron" />
-            </div>
-            <div className="filter-select">
-              <i className="ti ti-calendar" />
-              <span>All months</span>
-              <i className="ti ti-chevron-down chevron" />
-            </div>
+            <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
+            <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
             <div className="filter-right">
-              <div className="product-select">
-                <span>All products</span>
-                <i
-                  className="ti ti-chevron-down"
-                  style={{ fontSize: 13, color: "var(--text-tertiary)" }}
-                />
-              </div>
+              <Dropdown
+                value={product}
+                options={PRODUCTS}
+                onChange={setProduct}
+                className="product-select"
+                menuAlign="right"
+              />
             </div>
           </div>
 
           {tab === "sales" ? (
-            <SalesTab />
+            <SalesTab year={year} month={month} product={product} />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
@@ -223,7 +289,100 @@ function SideItem({
   );
 }
 
-function SalesTab() {
+const MONTH_LABELS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"] as const;
+
+function hash(s: string) {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0);
+}
+function rand(seed: number, i: number) {
+  const x = Math.sin(seed + i * 9301) * 10000;
+  return x - Math.floor(x);
+}
+function fmtEUR(n: number) {
+  return n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " EUR";
+}
+
+function buildData(year: Year, month: Month, product: Product) {
+  const seed = hash(`${year}|${month}|${product}`);
+  const yearMult = year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
+  const productMult =
+    product === "All products" ? 1
+    : product === "Meal vouchers" ? 0.55
+    : product === "Gift cards" ? 0.22
+    : product === "Eco vouchers" ? 0.15
+    : 0.1;
+
+  const months = month === "All months" ? [...MONTH_LABELS] : [month];
+  const base = months.map((m, i) => {
+    const v = 600 + rand(seed, i + 1) * 900;
+    return { m, value: Math.round(v * yearMult * productMult) };
+  });
+  const total = base.reduce((s, b) => s + b.value, 0);
+
+  const employerPool = [
+    "FNAC", "Proximus", "BNP", "Carrefour", "Orange", "Engie", "Decathlon", "Total", "L'Oréal",
+  ];
+  const employers = [0, 1, 2].map((i) => {
+    const name = employerPool[Math.floor(rand(seed, 50 + i) * employerPool.length)];
+    const clients = 8 + Math.floor(rand(seed, 60 + i) * 25);
+    const value = 60 + rand(seed, 70 + i) * 110;
+    return { name, clients: `${clients} clients`, value: fmtEUR(value * productMult) };
+  });
+  // de-dupe names
+  const seen = new Set<string>();
+  const employersUniq = employers.map((e) => {
+    let n = e.name;
+    let k = 0;
+    while (seen.has(n)) n = employerPool[(employerPool.indexOf(e.name) + ++k) % employerPool.length];
+    seen.add(n);
+    return { ...e, name: n };
+  });
+
+  const newClients = 20 + Math.floor(rand(seed, 11) * 60 * yearMult);
+  const knownClients = 90 + Math.floor(rand(seed, 12) * 120 * yearMult);
+  const avgBasket = Math.round((15 + rand(seed, 13) * 25) * (productMult * 1.4 + 0.3));
+
+  const mkDelta = (k: number) => {
+    const d = (rand(seed, 100 + k) - 0.5) * 40;
+    const cls = d > 1 ? "up" : d < -1 ? "down" : "flat";
+    const icon = cls === "up" ? "ti-trending-up" : cls === "down" ? "ti-trending-down" : "ti-minus";
+    const label = `${Math.abs(d).toFixed(1)}%`;
+    return { cls: cls as "up" | "down" | "flat", icon, label: cls === "flat" ? "0%" : label };
+  };
+
+  return {
+    total,
+    months: base,
+    employers: employersUniq,
+    clients: {
+      newClients: { value: String(newClients), delta: mkDelta(1) },
+      knownClients: { value: String(knownClients), delta: mkDelta(2) },
+      avgBasket: { value: `${avgBasket} EUR`, delta: mkDelta(3) },
+    },
+  };
+}
+
+function SalesTab({ year, month, product }: { year: Year; month: Month; product: Product }) {
+  const data = buildData(year, month, product);
+  const max = Math.max(...data.months.map((m) => m.value), 1);
+  const n = data.months.length;
+  const chartW = 680;
+  const chartH = 200;
+  const left = 48;
+  const innerW = chartW - left - 8;
+  const slot = innerW / n;
+  const barW = Math.min(40, slot * 0.55);
+  const topY = 16;
+  const baseY = 158;
+  const usableH = baseY - topY;
+
+  const ticks = [max, max * 0.66, max * 0.33, 0];
+
   return (
     <>
       {/* Sales over time */}
@@ -232,71 +391,43 @@ function SalesTab() {
           Pluxee sales over time
           <InfoTip text="This shows the total sales made with Pluxee products for the period you have selected. The chart helps you see how your performance evolves. You can use the filter at the top to focus on a specific product or period." />
         </div>
-        <div className="section-big-number">2 500,10 EUR</div>
+        <div className="section-big-number">{fmtEUR(data.total)}</div>
 
         <div className="chart-area">
           <svg
-            viewBox="0 0 680 200"
+            viewBox={`0 0 ${chartW} ${chartH}`}
             style={{ width: "100%", height: 200 }}
             role="img"
-            aria-label="Bar chart of Pluxee sales Jan to Jul 2026"
+            aria-label="Bar chart of Pluxee sales"
           >
             <g stroke="rgba(26,31,60,0.08)" strokeWidth="0.5">
-              <line x1="48" y1="16" x2="680" y2="16" />
-              <line x1="48" y1="58" x2="680" y2="58" />
-              <line x1="48" y1="100" x2="680" y2="100" />
-              <line x1="48" y1="142" x2="680" y2="142" />
+              {ticks.map((_, i) => {
+                const y = topY + (usableH * i) / 3;
+                return <line key={i} x1={left} y1={y} x2={chartW} y2={y} />;
+              })}
             </g>
-            <g
-              fontSize="9.5"
-              fill="#9B9A95"
-              fontFamily="Inter, sans-serif"
-              textAnchor="end"
-            >
-              <text x="40" y="20">1,500</text>
-              <text x="40" y="62">1,000</text>
-              <text x="40" y="104">500</text>
-              <text x="40" y="146">0</text>
+            <g fontSize="9.5" fill="#9B9A95" fontFamily="Inter, sans-serif" textAnchor="end">
+              {ticks.map((t, i) => {
+                const y = topY + (usableH * i) / 3 + 4;
+                return (
+                  <text key={i} x={40} y={y}>
+                    {Math.round(t).toLocaleString()}
+                  </text>
+                );
+              })}
             </g>
-            <text
-              transform="rotate(-90)"
-              x="-100"
-              y="12"
-              fontSize="9"
-              fill="#9B9A95"
-              fontFamily="Inter, sans-serif"
-              textAnchor="middle"
-            >
-              Revenue
-            </text>
-            {[
-              [66, 100, 42],
-              [154, 88, 54],
-              [242, 94, 48],
-              [330, 82, 60],
-              [418, 112, 30],
-              [506, 78, 64],
-              [594, 84, 58],
-            ].map(([x, y, h], i) => (
-              <rect
-                key={i}
-                x={x}
-                y={y}
-                width={40}
-                height={h}
-                rx={3}
-                fill="var(--navy)"
-              />
-            ))}
-            <g
-              fontSize="10"
-              fill="#5F5E5A"
-              fontFamily="Inter, sans-serif"
-              textAnchor="middle"
-            >
-              {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"].map((m, i) => (
-                <text key={m} x={86 + i * 88} y={166}>
-                  {m}
+            {data.months.map((m, i) => {
+              const h = (m.value / max) * usableH;
+              const x = left + slot * i + (slot - barW) / 2;
+              const y = baseY - h;
+              return (
+                <rect key={m.m + i} x={x} y={y} width={barW} height={h} rx={3} fill="var(--navy)" />
+              );
+            })}
+            <g fontSize="10" fill="#5F5E5A" fontFamily="Inter, sans-serif" textAnchor="middle">
+              {data.months.map((m, i) => (
+                <text key={m.m + i} x={left + slot * i + slot / 2} y={178}>
+                  {m.m}
                 </text>
               ))}
             </g>
@@ -311,11 +442,7 @@ function SalesTab() {
           <InfoTip text="These are the three employers most represented among your Pluxee customers. This allows you to understand where your sales come from and identify potential partnerships." />
         </div>
         <div className="employer-grid">
-          {[
-            { name: "FNAC", clients: "22 clients", value: "125,00 EUR" },
-            { name: "Proximus", clients: "19 clients", value: "120,00 EUR" },
-            { name: "BNP", clients: "15 clients", value: "100,00 EUR" },
-          ].map((e) => (
+          {data.employers.map((e) => (
             <div className="employer-cell" key={e.name}>
               <div className="employer-name">
                 {e.name}
@@ -336,28 +463,28 @@ function SalesTab() {
         </div>
         <div className="clients-grid">
           <ClientCell
-            value="45"
+            value={data.clients.newClients.value}
             icon="ti-user"
             label="New clients"
-            deltaClass="down"
-            deltaIcon="ti-trending-down"
-            delta="3.6%"
+            deltaClass={data.clients.newClients.delta.cls}
+            deltaIcon={data.clients.newClients.delta.icon}
+            delta={data.clients.newClients.delta.label}
           />
           <ClientCell
-            value="145"
+            value={data.clients.knownClients.value}
             icon="ti-users"
             label="Known clients"
-            deltaClass="flat"
-            deltaIcon="ti-minus"
-            delta="0%"
+            deltaClass={data.clients.knownClients.delta.cls}
+            deltaIcon={data.clients.knownClients.delta.icon}
+            delta={data.clients.knownClients.delta.label}
           />
           <ClientCell
-            value="24 EUR"
+            value={data.clients.avgBasket.value}
             icon="ti-coin"
             label="Average basket"
-            deltaClass="up"
-            deltaIcon="ti-trending-up"
-            delta="20%"
+            deltaClass={data.clients.avgBasket.delta.cls}
+            deltaIcon={data.clients.avgBasket.delta.icon}
+            delta={data.clients.avgBasket.delta.label}
           />
         </div>
       </div>
@@ -460,6 +587,13 @@ const CSS = `
 .store-menu-item { padding: 8px 12px; font-size: 13px; color: var(--text-primary); border-radius: 6px; cursor: pointer; font-family: var(--font); }
 .store-menu-item:hover { background: var(--page-bg); }
 .store-menu-item.active { background: var(--page-bg); font-weight: 500; }
+
+.dd-wrap { position: relative; display: inline-block; }
+.dd-menu { position: absolute; top: calc(100% + 6px); left: 0; min-width: 160px; background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(26,31,60,0.10); padding: 4px; z-index: 40; max-height: 280px; overflow-y: auto; }
+.dd-menu.right { left: auto; right: 0; }
+.dd-item { padding: 7px 12px; font-size: 12.5px; color: var(--text-primary); border-radius: 6px; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+.dd-item:hover { background: var(--bg); }
+.dd-item.active { background: var(--bg); font-weight: 500; }
 
 .tabs-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
 .tabs { display: flex; gap: 0; flex-shrink: 0; }
