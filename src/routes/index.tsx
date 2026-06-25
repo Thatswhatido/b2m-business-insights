@@ -1645,32 +1645,8 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
           ))}
         </div>
 
-        <div className="cmp-card">
-          <div className="section-title" style={{ marginBottom: 12 }}>
-            <i className="ti ti-calendar-event" />Sector context
-          </div>
-          <div className="cmp-event-row">
-            <div className="cmp-event-dot" style={{ background: "#BA7517" }} />
-            <div>
-              <p className="cmp-event-title">Wk 5 · Sector contraction</p>
-              <p className="cmp-event-desc">Restaurant voucher volume in Brussels dropped 12% in week 3 of {periodB}. Sector-wide pattern, not isolated to your store.</p>
-            </div>
-          </div>
-          <div className="cmp-event-row">
-            <div className="cmp-event-dot" style={{ background: "var(--navy)" }} />
-            <div>
-              <p className="cmp-event-title">Wk 2 · Budget load week</p>
-              <p className="cmp-event-desc">Top employers in your area loaded meal vouchers. Your Period B sales rose, but less than typical (+8% vs usual +20-30%).</p>
-            </div>
-          </div>
-          <div className="cmp-event-row last">
-            <div className="cmp-event-dot" style={{ background: "var(--green-dark)" }} />
-            <div>
-              <p className="cmp-event-title">Period B · Public holiday</p>
-              <p className="cmp-event-desc">One additional bank holiday in Period B vs Period A. Likely contributes 2-3% of the revenue gap.</p>
-            </div>
-          </div>
-        </div>
+
+
       </div>
 
 
