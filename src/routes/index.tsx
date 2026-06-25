@@ -226,21 +226,23 @@ function Dashboard() {
           </div>
 
           {/* Filters */}
-          <div className="filter-row">
-            <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
-            <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
-            {tab !== "sector" && (
-              <div className="filter-right">
-                <Dropdown
-                  value={product}
-                  options={PRODUCTS}
-                  onChange={setProduct}
-                  className="product-select"
-                  menuAlign="right"
-                />
-              </div>
-            )}
-          </div>
+          {tab !== "forecast" && (
+            <div className="filter-row">
+              <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
+              <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
+              {tab !== "sector" && (
+                <div className="filter-right">
+                  <Dropdown
+                    value={product}
+                    options={PRODUCTS}
+                    onChange={setProduct}
+                    className="product-select"
+                    menuAlign="right"
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {tab === "sales" ? (
             <SalesTab year={year} month={month} product={product} />
@@ -248,6 +250,8 @@ function Dashboard() {
             <BenchmarkTab year={year} month={month} product={product} />
           ) : tab === "sector" ? (
             <SectorHealthTab year={year} month={month} product={product} />
+          ) : tab === "forecast" ? (
+            <ForecastTab />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
@@ -1102,6 +1106,272 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
   );
 }
 
+function ForecastTab() {
+  const [scenario, setScenario] = useState<"Conservative" | "Base" | "Optimistic">("Base");
+  const [horizon, setHorizon] = useState<"4 weeks" | "8 weeks" | "12 weeks">("8 weeks");
+
+  return (
+    <>
+      {/* Filter row */}
+      <div className="forecast-filter-row">
+        <div className="forecast-filter-group">
+          <span className="forecast-filter-label">Horizon</span>
+          <Dropdown
+            value={horizon}
+            options={["4 weeks", "8 weeks", "12 weeks"] as const}
+            onChange={(v) => setHorizon(v as typeof horizon)}
+            icon="ti-calendar"
+          />
+        </div>
+        <div className="forecast-filter-group">
+          <span className="forecast-filter-label">Scenario</span>
+          <div className="scenario-toggle">
+            {(["Conservative", "Base", "Optimistic"] as const).map((s) => (
+              <button
+                key={s}
+                type="button"
+                className={scenario === s ? "active" : ""}
+                onClick={() => setScenario(s)}
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div style={{ flex: 1 }} />
+        <button type="button" className="btn-alert">
+          <i className="ti ti-bell" />
+          Set alert
+        </button>
+      </div>
+
+      {/* KPI cards */}
+      <div className="kpi-grid-4">
+        <div className="kpi-card">
+          <p className="kpi-label">This week actual</p>
+          <p className="kpi-value">8 640 EUR</p>
+          <p className="kpi-caption">Wk 18 · in progress</p>
+        </div>
+        <div className="kpi-card highlight-success">
+          <p className="kpi-label">Forecast peak</p>
+          <p className="kpi-value text-success">11 200 EUR</p>
+          <p className="kpi-caption">Wk +2 · budget load</p>
+        </div>
+        <div className="kpi-card highlight-danger">
+          <p className="kpi-label">Forecast trough</p>
+          <p className="kpi-value text-danger">6 800 EUR</p>
+          <p className="kpi-caption">Wk +6 · sector contraction</p>
+        </div>
+        <div className="kpi-card">
+          <p className="kpi-label">Projected total</p>
+          <p className="kpi-value">120 940 EUR</p>
+          <p className="kpi-caption">Next 8 weeks</p>
+        </div>
+      </div>
+
+      {/* Revenue projection chart */}
+      <div className="forecast-chart-card">
+        <div className="forecast-chart-header">
+          <div>
+            <p className="forecast-chart-title">Revenue projection</p>
+            <p className="forecast-chart-subtitle">Actual + 8-week forecast · {scenario.toLowerCase()} scenario</p>
+          </div>
+          <div className="forecast-legend">
+            <span><span className="legend-line" />Actual</span>
+            <span><span className="legend-line dashed" />Forecast</span>
+            <span><span className="legend-swatch" style={{ background: "rgba(79,195,217,0.25)" }} />Range</span>
+            <span><span className="legend-swatch" style={{ background: "rgba(30,215,96,0.25)" }} />Signal</span>
+          </div>
+        </div>
+
+        <svg viewBox="0 0 760 240" style={{ width: "100%", height: 240 }} role="img" aria-label="Revenue projection">
+          <defs>
+            <linearGradient id="bandFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#4FC3D9" stopOpacity="0.22" />
+              <stop offset="100%" stopColor="#4FC3D9" stopOpacity="0.06" />
+            </linearGradient>
+            <linearGradient id="sigGreen" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#1ED760" stopOpacity="0.14" />
+              <stop offset="100%" stopColor="#1ED760" stopOpacity="0.03" />
+            </linearGradient>
+            <linearGradient id="sigRed" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#D0312D" stopOpacity="0.10" />
+              <stop offset="100%" stopColor="#D0312D" stopOpacity="0.02" />
+            </linearGradient>
+            <clipPath id="chartClip">
+              <rect x="44" y="10" width="714" height="205" />
+            </clipPath>
+          </defs>
+
+          {/* Y axis labels */}
+          <g fontSize="9" fill="#8A8AAA" fontFamily="Inter,sans-serif" textAnchor="end">
+            {["€13k","€12k","€11k","€10k","€9k","€8k","€7k","€6k","€5k","€4k"].map((l, i) => (
+              <text key={l} x={40} y={22 + i * 21}>{l}</text>
+            ))}
+          </g>
+
+          {/* Grid */}
+          <g stroke="#EBEBF5" strokeWidth="0.5">
+            {Array.from({ length: 10 }, (_, i) => (
+              <line key={i} x1="44" y1={21 + i * 21} x2="758" y2={21 + i * 21} />
+            ))}
+          </g>
+
+          {/* Signal zones */}
+          <rect x="329" y="14" width="96" height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />
+          <rect x="533" y="14" width="96" height="198" fill="url(#sigRed)" clipPath="url(#chartClip)" />
+          <rect x="635" y="14" width="96" height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />
+
+          <line x1="329" y1="14" x2="329" y2="212" stroke="#1ED760" strokeWidth="0.8" strokeDasharray="3 3" />
+          <line x1="425" y1="14" x2="425" y2="212" stroke="#1ED760" strokeWidth="0.8" strokeDasharray="3 3" />
+          <line x1="533" y1="14" x2="533" y2="212" stroke="#D0312D" strokeWidth="0.8" strokeDasharray="3 3" />
+          <line x1="629" y1="14" x2="629" y2="212" stroke="#D0312D" strokeWidth="0.8" strokeDasharray="3 3" />
+          <line x1="635" y1="14" x2="635" y2="212" stroke="#1ED760" strokeWidth="0.8" strokeDasharray="3 3" />
+
+          {/* Confidence band */}
+          <path
+            clipPath="url(#chartClip)"
+            d="M299,113 C320,108 335,96 350,90 C365,84 385,48 401,52 C417,56 435,68 452,78 C469,88 487,96 503,104 C519,112 535,128 554,142 C573,156 590,138 605,128 C620,118 638,110 656,116 C674,122 690,102 707,72 L707,140 C690,166 674,152 656,146 C638,140 620,148 605,158 C590,168 573,186 554,172 C535,158 519,142 503,134 C487,126 469,118 452,108 C435,98 417,86 401,82 C385,78 365,114 350,120 C335,126 320,128 299,133 Z"
+            fill="url(#bandFill)"
+          />
+
+          {/* Today line */}
+          <line x1="299" y1="14" x2="299" y2="212" stroke="#1A1D3B" strokeWidth="1" strokeDasharray="4 3" />
+          <text x="303" y="12" fontSize="9" fill="#1A1D3B" fontFamily="Inter,sans-serif" fontWeight="600">today</text>
+
+          {/* Actual line (navy solid) */}
+          <path
+            fill="none"
+            stroke="#1A1D3B"
+            strokeWidth="2.2"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            d="M44,126 C60,126 75,122 95,122 C115,122 125,128 146,128 C167,128 180,115 197,115 C214,115 230,109 248,109 C266,109 282,113 299,113"
+          />
+          {[[44,126],[95,122],[146,128],[197,115],[248,109],[299,113]].map(([x, y]) => (
+            <circle key={`a${x}`} cx={x} cy={y} r="3.5" fill="#1A1D3B" stroke="white" strokeWidth="1.5" />
+          ))}
+
+          {/* Forecast line (cyan dashed) */}
+          <path
+            fill="none"
+            stroke="#4FC3D9"
+            strokeWidth="2.2"
+            strokeDasharray="6 3"
+            strokeLinecap="round"
+            d="M299,113 C320,108 335,76 350,70 C365,64 385,52 401,57 C417,62 435,74 452,83 C469,92 487,100 503,109 C519,118 535,133 554,147 C573,161 590,143 605,133 C620,123 638,116 656,121 C674,126 690,106 707,82"
+          />
+          {[[350,70],[401,57],[452,83],[503,109],[554,147],[605,133],[656,121],[707,82]].map(([x, y]) => (
+            <rect key={`f${x}`} x={x - 4} y={y - 4} width="8" height="8" rx="2" fill="#4FC3D9" stroke="white" strokeWidth="1.5" />
+          ))}
+
+          {/* X axis labels */}
+          <g fontSize="9.5" fill="#4A4A6A" fontFamily="Inter,sans-serif" textAnchor="middle">
+            {["Wk -5","Wk -4","Wk -3","Wk -2","Wk -1","Now","Wk +1","Wk +2","Wk +3","Wk +4","Wk +5","Wk +6","Wk +7","Wk +8"].map((l, i) => (
+              <text key={l} x={44 + i * 51} y="225">{l}</text>
+            ))}
+          </g>
+        </svg>
+      </div>
+
+      {/* Signals + Scenarios */}
+      <div className="two-col-forecast">
+        <div className="fcard">
+          <div className="fcard-title"><i className="ti ti-calendar-event" />Upcoming signals</div>
+
+          <div className="signal-item">
+            <div className="signal-icon up"><i className="ti ti-trending-up" /></div>
+            <div style={{ flex: 1 }}>
+              <p className="signal-week">Wk +2 · Budget load week</p>
+              <p className="signal-desc">Top employers in your area typically load meal vouchers this week. Expect +20-30% footfall.</p>
+              <div className="signal-tags">
+                <span className="signal-tag positive">+27% historical lift</span>
+                <span className="signal-away">10 days away</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="signal-item">
+            <div className="signal-icon down"><i className="ti ti-trending-down" /></div>
+            <div style={{ flex: 1 }}>
+              <p className="signal-week">Wk +6 · Sector contraction</p>
+              <p className="signal-desc">Restaurant voucher volume in Brussels typically dips this period. Sector down ~9% historically.</p>
+              <div className="signal-tags">
+                <span className="signal-tag negative">-9% sector pattern</span>
+                <span className="signal-away">38 days away</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="signal-item">
+            <div className="signal-icon up"><i className="ti ti-trending-up" /></div>
+            <div style={{ flex: 1 }}>
+              <p className="signal-week">Wk +8 · End of month payroll</p>
+              <p className="signal-desc">Mid-cycle voucher reload from primary employers in your catchment area.</p>
+              <div className="signal-tags">
+                <span className="signal-tag positive">+12% historical lift</span>
+                <span className="signal-away">52 days away</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="fcard">
+          <div className="fcard-title"><i className="ti ti-adjustments-horizontal" />Scenarios</div>
+
+          {([
+            { name: "Conservative", color: "#D0312D", desc: "Assumes weak budget load, stronger contraction", value: "108 200 EUR" },
+            { name: "Base", color: "#1A1D3B", desc: "Based on 12 months of your trends and sector patterns", value: "120 940 EUR" },
+            { name: "Optimistic", color: "#1ED760", desc: "Strong budget load, mild contraction", value: "134 500 EUR" },
+          ] as const).map((s) => {
+            const selected = scenario === s.name;
+            return (
+              <div
+                key={s.name}
+                className="scenario-item"
+                style={selected ? { background: "rgba(26,29,59,0.04)", margin: "0 -8px", padding: "10px 8px", borderRadius: 6 } : undefined}
+              >
+                <div className="scenario-left">
+                  <div className="scenario-dot" style={{ background: s.color }} />
+                  <div>
+                    <div className="scenario-name">
+                      {s.name}
+                      {selected && <span className="selected-badge">Selected</span>}
+                    </div>
+                    <p className="scenario-desc">{s.desc}</p>
+                  </div>
+                </div>
+                <div className="scenario-value">{s.value}</div>
+              </div>
+            );
+          })}
+
+          <div className="scenario-note">
+            <i className="ti ti-info-circle" />
+            Confidence band shown on chart (±8% at week +1, ±18% at week +8).
+          </div>
+        </div>
+      </div>
+
+      {/* Insight banner */}
+      <div className="insight-card">
+        <div className="insight-icon"><i className="ti ti-bulb" /></div>
+        <div>
+          <div className="insight-title">Plan ahead for next month</div>
+          <div className="insight-desc">
+            Your peak is in 10 days (budget load week). Ensure stock and staff are ready. After that, expect a 4-week soft period before recovery. This is the right window to plan a promotion or run a campaign to smooth the trough.
+          </div>
+        </div>
+      </div>
+
+      <div className="footer-note">
+        <i className="ti ti-info-circle" />
+        Forecast based on 12 months of your store history, Brussels restaurants sector patterns, and known employer benefit cycles. Confidence widens with horizon.
+      </div>
+    </>
+  );
+}
+
 const CSS = `
 .pluxee-app {
   --navy: #1A1F3C;
@@ -1282,4 +1552,65 @@ const CSS = `
 .insight-icon i { font-size: 18px; }
 .insight-title { font-size: 13px; font-weight: 600; color: #176A2C; }
 .insight-desc { font-size: 12px; color: #1F4A14; line-height: 1.6; margin-top: 4px; }
+
+/* Forecast tab */
+.forecast-filter-row { display: flex; align-items: center; gap: 24px; margin-bottom: 16px; flex-wrap: wrap; }
+.forecast-filter-group { display: flex; align-items: center; gap: 10px; }
+.forecast-filter-label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+.scenario-toggle { display: inline-flex; background: var(--white); border: 0.5px solid var(--border); border-radius: 8px; padding: 3px; gap: 2px; }
+.scenario-toggle > button { font-family: inherit; border: none; background: transparent; padding: 6px 12px; font-size: 12px; font-weight: 500; color: var(--text-secondary); border-radius: 6px; cursor: pointer; }
+.scenario-toggle > button.active { background: var(--navy); color: #fff; }
+.btn-alert { display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px; border-radius: 8px; border: 0.5px solid var(--border); background: var(--white); font-family: inherit; font-size: 12px; font-weight: 500; color: var(--text-primary); cursor: pointer; }
+.btn-alert i { font-size: 14px; }
+
+.kpi-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.kpi-card { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
+.kpi-card.highlight-success { border-color: rgba(30,215,96,0.4); background: rgba(30,215,96,0.05); }
+.kpi-card.highlight-danger { border-color: rgba(208,49,45,0.35); background: rgba(208,49,45,0.04); }
+.kpi-label { font-size: 11px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.4px; font-weight: 500; }
+.kpi-value { font-size: 22px; font-weight: 600; color: var(--navy); margin-top: 6px; }
+.kpi-value.text-success { color: #176A2C; }
+.kpi-value.text-danger { color: #A32D2D; }
+.kpi-caption { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+
+.forecast-chart-card { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 16px; }
+.forecast-chart-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 16px; flex-wrap: wrap; }
+.forecast-chart-title { font-size: 14px; font-weight: 600; color: var(--navy); }
+.forecast-chart-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+.forecast-legend { display: flex; gap: 14px; font-size: 11px; color: var(--text-secondary); align-items: center; flex-wrap: wrap; }
+.forecast-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.legend-line { width: 16px; height: 2px; background: var(--navy); border-radius: 1px; }
+.legend-line.dashed { background: transparent; border-top: 2px dashed #4FC3D9; }
+.legend-swatch { width: 14px; height: 8px; border-radius: 2px; }
+
+.two-col-forecast { display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px; margin-bottom: 16px; }
+.fcard { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 16px; }
+.fcard-title { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 12px; }
+.fcard-title i { font-size: 16px; color: var(--text-secondary); }
+
+.signal-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--border-light); }
+.signal-item:last-child { border-bottom: none; }
+.signal-icon { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.signal-icon.up { background: rgba(30,215,96,0.12); color: #176A2C; }
+.signal-icon.down { background: rgba(208,49,45,0.10); color: #A32D2D; }
+.signal-icon i { font-size: 15px; }
+.signal-week { font-size: 12px; font-weight: 600; color: var(--navy); }
+.signal-desc { font-size: 12px; color: var(--text-secondary); margin-top: 3px; line-height: 1.5; }
+.signal-tags { display: flex; gap: 8px; margin-top: 6px; align-items: center; flex-wrap: wrap; }
+.signal-tag { font-size: 10.5px; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+.signal-tag.positive { background: rgba(30,215,96,0.14); color: #176A2C; }
+.signal-tag.negative { background: rgba(208,49,45,0.12); color: #A32D2D; }
+.signal-away { font-size: 10.5px; color: var(--text-tertiary); }
+
+.scenario-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; }
+.scenario-left { display: flex; align-items: center; gap: 10px; }
+.scenario-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.scenario-name { font-size: 12.5px; font-weight: 600; color: var(--navy); display: flex; align-items: center; gap: 6px; }
+.scenario-desc { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+.scenario-value { font-size: 13px; font-weight: 600; color: var(--navy); }
+.selected-badge { font-size: 9.5px; font-weight: 600; padding: 1px 6px; border-radius: 3px; background: var(--navy); color: #fff; text-transform: uppercase; letter-spacing: 0.3px; }
+.scenario-note { display: flex; gap: 6px; align-items: flex-start; font-size: 11px; color: var(--text-tertiary); margin-top: 10px; padding-top: 10px; border-top: 0.5px solid var(--border-light); }
+.scenario-note i { font-size: 13px; margin-top: 1px; }
+.footer-note { display: flex; gap: 8px; align-items: flex-start; font-size: 11.5px; color: var(--text-tertiary); padding: 8px 4px; }
+.footer-note i { font-size: 14px; margin-top: 1px; }
 `;
