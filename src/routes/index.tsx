@@ -972,6 +972,10 @@ const CSS = `
 
 .section-subtle { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
 .bench-legend { display: inline-flex; gap: 14px; font-size: 11.5px; color: var(--text-secondary); font-weight: 400; }
+.bench-totals { display: flex; gap: 32px; margin: 12px 0 8px; }
+.bench-total-value { font-size: 22px; font-weight: 600; color: var(--text-primary); line-height: 1.1; }
+.bench-total-value.muted { color: var(--text-secondary); font-weight: 500; }
+.bench-total-caption { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
 .legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
 
 .bench-kpi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
