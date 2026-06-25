@@ -306,10 +306,8 @@ function buildData(year: Year, month: Month, product: Product) {
   const yearMult = year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
   const productMult =
     product === "All products" ? 1
-    : product === "Meal vouchers" ? 0.55
-    : product === "Gift cards" ? 0.22
-    : product === "Eco vouchers" ? 0.15
-    : 0.1;
+    : product === "Lunch" ? 0.7
+    : 0.3;
 
   const months = month === "All months" ? [...MONTH_LABELS] : [month];
   const base = months.map((m, i) => {
