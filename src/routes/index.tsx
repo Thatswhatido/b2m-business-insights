@@ -121,7 +121,10 @@ const STORE_WEIGHTS: Record<Store, number> = {
   Blanche: 0.25,
 };
 
+type View = "home" | "insights";
+
 function Dashboard() {
+  const [view, setView] = useState<View>("home");
   const [tab, setTab] = useState<TabId>("sales");
   const [store, setStore] = useState<(typeof STORES)[number]>("All stores");
   const [year, setYear] = useState<Year>("2026");
@@ -161,23 +164,36 @@ function Dashboard() {
       <div className="layout">
         {/* Sidebar */}
         <nav className="sidebar">
-          <div className="sidebar-item">
-            <div className="sidebar-sub">
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <i className="ti ti-building-store" />
-                <span>Dashboard</span>
-              </div>
-              <i className="ti ti-chevron-down" style={{ fontSize: 13 }} />
-            </div>
+          <div
+            className={`sidebar-item${view === "home" ? " active" : ""}`}
+            onClick={() => setView("home")}
+            role="button"
+            tabIndex={0}
+          >
+            <i className="ti ti-building-store" />
+            <span>Dashboard</span>
           </div>
           <SideItem icon="ti-building" label="Company" />
           <SideItem icon="ti-map-pin" label="Stores" />
           <SideItem icon="ti-activity" label="Activity" />
-          <SideItem icon="ti-chart-bar" label="Insight" active />
+          <div
+            className={`sidebar-item${view === "insights" ? " active" : ""}`}
+            onClick={() => setView("insights")}
+            role="button"
+            tabIndex={0}
+          >
+            <i className="ti ti-chart-bar" />
+            <span>Insight</span>
+          </div>
         </nav>
 
         {/* Main */}
         <main className="main">
+          {view === "home" ? (
+            <HomeTab />
+          ) : (
+          <>
+
           <div className="page-header">
             <h1 className="page-title">Business insights</h1>
             <div className="store-select-wrap" ref={storeRef}>
@@ -282,7 +298,10 @@ function Dashboard() {
               </p>
             </div>
           )}
+          </>
+          )}
         </main>
+
       </div>
     </div>
   );
@@ -2511,4 +2530,201 @@ const CSS = `
 .history-meta { margin: 2px 0 0; font-size: 11px; color: var(--text-tertiary); }
 .history-action { font-family: inherit; width: 30px; height: 30px; border-radius: var(--radius-md); border: 0.5px solid var(--border); background: #fff; color: var(--navy); cursor: pointer; display: flex; align-items: center; justify-content: center; }
 .history-action:hover { background: rgba(26,31,60,0.04); }
+
+/* ===== Home (Dashboard) page ===== */
+.home-wrap { max-width: 920px; }
+.welcome-heading { font-size: 24px; font-weight: 700; color: var(--text-primary); margin-bottom: 16px; }
+
+.carousel-wrap { position: relative; margin-bottom: 28px; }
+.carousel-track { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.promo-card { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-md); display: flex; align-items: stretch; overflow: hidden; min-height: 96px; }
+.promo-card.highlighted { background: #EFFBF3; border-color: #C6EFD3; }
+.promo-img { width: 88px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(26,29,59,0.06); }
+.promo-card.highlighted .promo-img { background: rgba(30,215,96,0.12); }
+.promo-img svg { width: 48px; height: 48px; }
+.promo-body { padding: 14px 16px; display: flex; flex-direction: column; justify-content: center; gap: 4px; }
+.promo-title { font-size: 13px; font-weight: 600; color: var(--text-primary); margin: 0; }
+.promo-desc { font-size: 11.5px; color: var(--text-secondary); line-height: 1.5; margin: 0; max-width: 240px; }
+.promo-link { font-size: 11.5px; color: var(--navy); font-weight: 600; text-decoration: none; margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; }
+.promo-link:hover { text-decoration: underline; }
+.carousel-nav { display: flex; justify-content: flex-end; gap: 6px; margin-top: 10px; }
+.carousel-btn { width: 30px; height: 30px; border-radius: 50%; border: 0.5px solid var(--border); background: var(--white); display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--text-secondary); font-size: 13px; }
+.carousel-btn:hover { background: var(--bg); }
+
+.greeting-title { font-size: 20px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; }
+.greeting-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; }
+
+.recap-hero { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 22px 24px 22px; overflow: hidden; position: relative; }
+.recap-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.recap-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 700; color: var(--green); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 8px; }
+.pulse-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; box-shadow: 0 0 0 0 rgba(30,215,96,0.5); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { box-shadow: 0 0 0 0 rgba(30,215,96,0.5);} 50% { box-shadow: 0 0 0 5px rgba(30,215,96,0);} }
+.recap-headline { font-size: 16px; font-weight: 600; color: var(--text-primary); margin: 0 0 4px; line-height: 1.35; }
+.recap-period { font-size: 11.5px; color: var(--text-tertiary); margin: 0; }
+.recap-cta { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: var(--navy); border: none; border-radius: 999px; font-family: var(--font); font-size: 12px; font-weight: 500; color: var(--white); cursor: pointer; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
+.recap-cta:hover { background: #2A2F55; }
+
+.recap-revenue-row { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.recap-eur { font-size: 36px; font-weight: 700; color: var(--text-primary); letter-spacing: -1px; line-height: 1; }
+.recap-revenue-meta { display: flex; flex-direction: column; gap: 4px; }
+.delta-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; background: var(--green); color: var(--navy); border-radius: 999px; font-size: 11px; font-weight: 600; width: fit-content; }
+.recap-revenue-label { font-size: 11.5px; color: var(--text-tertiary); }
+
+.recap-stats { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1fr; gap: 1px; background: var(--border-light, #EBEBF5); border-radius: var(--radius-md); overflow: hidden; margin-bottom: 16px; }
+.stat-cell { background: var(--bg); padding: 12px 14px; display: flex; flex-direction: column; gap: 4px; }
+.stat-label { font-size: 9.5px; font-weight: 600; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.6px; }
+.stat-value-row { display: flex; align-items: baseline; gap: 6px; }
+.stat-value { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+.stat-delta-pos { font-size: 11px; font-weight: 600; color: var(--green-dark, #17B34A); }
+.stat-delta-neg { font-size: 11px; font-weight: 600; color: #E5484D; }
+.stat-context { font-size: 10.5px; color: var(--text-tertiary); line-height: 1.4; }
+
+.insight-strip { background: #F0FBF4; border: 0.5px solid rgba(30,215,96,0.3); border-radius: var(--radius-md); padding: 14px 16px; display: flex; align-items: center; gap: 12px; }
+.insight-icon-wrap { width: 32px; height: 32px; border-radius: 50%; background: rgba(30,215,96,0.18); border: 0.5px solid rgba(30,215,96,0.35); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--green-dark, #17B34A); }
+.insight-icon-wrap i { font-size: 16px; }
+.insight-body { flex: 1; }
+.insight-title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin: 0 0 3px; }
+.insight-desc { font-size: 11.5px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+.insight-action { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; background: var(--navy); border: none; border-radius: 999px; font-family: var(--font); font-size: 11.5px; font-weight: 500; color: var(--white); cursor: pointer; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
+.insight-action:hover { background: #2A2F55; }
 `;
+
+function HomeTab() {
+  return (
+    <div className="home-wrap">
+      <h1 className="welcome-heading">Welcome, John</h1>
+
+      <div className="carousel-wrap">
+        <div className="carousel-track">
+          <div className="promo-card">
+            <div className="promo-img">
+              <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="12" y="10" width="36" height="40" rx="4" stroke="#1A1D3B" strokeWidth="1.5"/>
+                <line x1="19" y1="22" x2="41" y2="22" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="19" y1="30" x2="41" y2="30" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
+                <line x1="19" y1="38" x2="32" y2="38" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="44" cy="44" r="8" fill="#1ED760"/>
+                <path d="M41 44 L43.5 46.5 L47 42" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
+            <div className="promo-body">
+              <p className="promo-title">Your billings are ready</p>
+              <p className="promo-desc">Review your latest Pluxee transactions and reconcile your payouts for this period.</p>
+              <a href="#" className="promo-link">Check transactions <i className="ti ti-arrow-right" /></a>
+            </div>
+          </div>
+
+          <div className="promo-card highlighted">
+            <div className="promo-img">
+              <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="30" cy="30" r="18" stroke="#1A1D3B" strokeWidth="1.5"/>
+                <path d="M22 30 Q30 18 38 30 Q30 42 22 30Z" stroke="#1A1D3B" strokeWidth="1.5" fill="#EFFBF3"/>
+                <circle cx="30" cy="30" r="4" fill="#1ED760"/>
+                <path d="M30 12 L30 8" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M48 30 L52 30" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
+                <path d="M43.5 16.5 L46.5 13.5" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div className="promo-body">
+              <p className="promo-title">Reach more customers</p>
+              <p className="promo-desc">Promote your store to Pluxee users nearby with targeted push notifications and campaigns.</p>
+              <a href="#" className="promo-link">Discover Marketing solutions <i className="ti ti-arrow-right" /></a>
+            </div>
+          </div>
+        </div>
+        <div className="carousel-nav">
+          <button className="carousel-btn"><i className="ti ti-chevron-left" /></button>
+          <button className="carousel-btn"><i className="ti ti-chevron-right" /></button>
+        </div>
+      </div>
+
+      <div className="recap-hero">
+        <div className="recap-header">
+          <div>
+            <div className="recap-eyebrow">
+              <span className="pulse-dot" />
+              Weekly recap
+            </div>
+            <p className="recap-headline">Strong week, your basket grew faster than the sector</p>
+            <p className="recap-period">12 - 18 May 2026 · vs previous week</p>
+          </div>
+          <a href="#" className="recap-cta">
+            View full dashboard
+            <i className="ti ti-arrow-right" />
+          </a>
+        </div>
+
+        <div className="recap-revenue-row">
+          <span className="recap-eur">9,840 EUR</span>
+          <div className="recap-revenue-meta">
+            <span className="delta-badge">
+              <i className="ti ti-trending-up" />
+              +14% vs last week
+            </span>
+            <span className="recap-revenue-label">Pluxee revenue this week</span>
+          </div>
+        </div>
+
+        <div className="recap-stats">
+          <div className="stat-cell">
+            <p className="stat-label">Daily revenue</p>
+            <div className="stat-value-row">
+              <span className="stat-value">9,840 EUR</span>
+              <span className="stat-delta-pos">+14%</span>
+            </div>
+            <svg viewBox="0 0 160 32" style={{ width: "100%", height: 32, marginTop: 6 }} aria-hidden="true">
+              <defs>
+                <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#1ED760" stopOpacity="0.3"/>
+                  <stop offset="100%" stopColor="#1ED760" stopOpacity="0"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#sparkFill)" d="M0,22 C10,22 15,18 28,18 C41,18 45,24 58,20 C71,16 76,10 90,10 C104,10 108,16 120,13 C132,10 145,4 160,4 L160,32 L0,32 Z"/>
+              <path fill="none" stroke="#1ED760" strokeWidth="1.8" strokeLinecap="round" d="M0,22 C10,22 15,18 28,18 C41,18 45,24 58,20 C71,16 76,10 90,10 C104,10 108,16 120,13 C132,10 145,4 160,4"/>
+              <circle cx="160" cy="4" r="3" fill="#1ED760"/>
+            </svg>
+          </div>
+          <div className="stat-cell">
+            <p className="stat-label">Transactions</p>
+            <div className="stat-value-row">
+              <span className="stat-value">612</span>
+              <span className="stat-delta-pos">+8%</span>
+            </div>
+            <p className="stat-context">87 per day on average</p>
+          </div>
+          <div className="stat-cell">
+            <p className="stat-label">Avg basket</p>
+            <div className="stat-value-row">
+              <span className="stat-value">16.10 EUR</span>
+              <span className="stat-delta-pos">+5%</span>
+            </div>
+            <p className="stat-context">Sector at 15.20 EUR</p>
+          </div>
+          <div className="stat-cell">
+            <p className="stat-label">New clients</p>
+            <div className="stat-value-row">
+              <span className="stat-value">18</span>
+              <span className="stat-delta-neg">-12%</span>
+            </div>
+            <p className="stat-context">Down from 21 last week</p>
+          </div>
+        </div>
+
+        <div className="insight-strip">
+          <div className="insight-icon-wrap">
+            <i className="ti ti-calendar-event" />
+          </div>
+          <div className="insight-body">
+            <p className="insight-title">Budget load week starts Monday</p>
+            <p className="insight-desc">Top employers in your area typically load meal vouchers next week. Expect +20-30% footfall. Make sure stock and staff are ready.</p>
+          </div>
+          <a href="#" className="insight-action">
+            Open forecast
+            <i className="ti ti-arrow-right" />
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
