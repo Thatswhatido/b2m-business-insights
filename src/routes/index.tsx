@@ -1285,9 +1285,9 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
             strokeWidth="2.2"
             strokeDasharray="6 3"
             strokeLinecap="round"
-            d="M299,123 C320,118 335,111 350,105 C365,99 385,77 401,67 C417,72 435,84 452,93 C469,102 487,110 503,119 C519,128 535,143 554,157 C573,171 590,153 605,143 C620,133 638,126 656,131 C674,136 690,116 707,106"
+            d={forecastPath}
           />
-          {[[350,105],[401,67],[452,93],[503,119],[554,157],[605,143],[656,131],[707,106]].map(([x, y]) => (
+          {forecastDots.map(([x, y]) => (
             <rect key={`f${x}`} x={x - 4} y={y - 4} width="8" height="8" rx="2" fill="#4FC3D9" stroke="white" strokeWidth="1.5" />
           ))}
 
