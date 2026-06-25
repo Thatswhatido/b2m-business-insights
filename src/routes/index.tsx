@@ -345,7 +345,7 @@ function buildData(year: Year, month: Month, product: Product, store: Store) {
     const monthsArr = MONTH_LABELS.slice(0, Math.max(0, lastIdx + 1));
     bars = monthsArr.map((m, i) => {
       const v = 600 + rand(seed, i + 1) * 900;
-      return { label: m, value: Math.round(v * yearMult * productMult) };
+      return { label: m, value: Math.round(v * yearMult * productMult * storeMult) };
     });
   } else {
     mode = "daily";
@@ -356,7 +356,7 @@ function buildData(year: Year, month: Month, product: Product, store: Store) {
       : total;
     bars = Array.from({ length: lastDay }, (_, i) => {
       const v = 20 + rand(seed, i + 1) * 60;
-      return { label: String(i + 1), value: Math.round(v * yearMult * productMult) };
+      return { label: String(i + 1), value: Math.round(v * yearMult * productMult * storeMult) };
     });
   }
   const total = bars.reduce((s, b) => s + b.value, 0);
