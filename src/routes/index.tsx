@@ -2723,10 +2723,11 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
             <p className="insight-title">Budget load week starts Monday</p>
             <p className="insight-desc">Top employers in your area typically load meal vouchers next week. Expect +20-30% footfall. Make sure stock and staff are ready.</p>
           </div>
-          <a href="#" className="insight-action">
+          <button type="button" onClick={onOpenForecast} className="insight-action">
             Open forecast
             <i className="ti ti-arrow-right" />
-          </a>
+          </button>
+
         </div>
       </div>
     </div>
