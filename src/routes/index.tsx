@@ -232,21 +232,24 @@ function Dashboard() {
             <div className="tab-badge">B</div>
           </div>
 
-          <div className="filter-row">
-            <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
-            <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
-            {tab !== "sector" && tab !== "forecast" && (
-              <div className="filter-right">
-                <Dropdown
-                  value={product}
-                  options={PRODUCTS}
-                  onChange={setProduct}
-                  className="product-select"
-                  menuAlign="right"
-                />
-              </div>
-            )}
-          </div>
+          {tab !== "comparison" && (
+            <div className="filter-row">
+              <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
+              <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
+              {tab !== "sector" && tab !== "forecast" && (
+                <div className="filter-right">
+                  <Dropdown
+                    value={product}
+                    options={PRODUCTS}
+                    onChange={setProduct}
+                    className="product-select"
+                    menuAlign="right"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
 
           {tab === "sales" ? (
             <SalesTab year={year} month={month} product={product} store={store} />
