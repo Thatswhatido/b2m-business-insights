@@ -165,7 +165,7 @@ function Dashboard() {
             <div className="sidebar-sub">
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <i className="ti ti-building-store" />
-                <span>Summer Su…</span>
+                <span>Dashboard</span>
               </div>
               <i className="ti ti-chevron-down" style={{ fontSize: 13 }} />
             </div>
