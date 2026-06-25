@@ -229,15 +229,17 @@ function Dashboard() {
           <div className="filter-row">
             <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
             <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
-            <div className="filter-right">
-              <Dropdown
-                value={product}
-                options={PRODUCTS}
-                onChange={setProduct}
-                className="product-select"
-                menuAlign="right"
-              />
-            </div>
+            {tab !== "sector" && (
+              <div className="filter-right">
+                <Dropdown
+                  value={product}
+                  options={PRODUCTS}
+                  onChange={setProduct}
+                  className="product-select"
+                  menuAlign="right"
+                />
+              </div>
+            )}
           </div>
 
           {tab === "sales" ? (
