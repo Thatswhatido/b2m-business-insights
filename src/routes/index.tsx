@@ -236,7 +236,7 @@ function Dashboard() {
             <div className="filter-row">
               <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
               <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
-              {tab !== "sector" && tab !== "forecast" && (
+              {tab !== "sector" && tab !== "forecast" && tab !== "segments" && (
                 <div className="filter-right">
                   <Dropdown
                     value={product}
