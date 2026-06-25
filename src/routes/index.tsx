@@ -272,7 +272,7 @@ function SalesTab() {
       <div className="section">
         <div className="section-title" style={{ marginBottom: 16 }}>
           Top employer clients
-          <i className="ti ti-info-circle info" />
+          <InfoTip text="These are the three employers most represented among your Pluxee customers. This allows you to understand where your sales come from and identify potential partnerships." />
         </div>
         <div className="employer-grid">
           {[
