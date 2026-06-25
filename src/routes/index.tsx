@@ -1,5 +1,30 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+
+function InfoTip({ text }: { text: string }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLSpanElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+  return (
+    <span className="info-wrap" ref={ref}>
+      <i
+        className="ti ti-info-circle info"
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((v) => !v);
+        }}
+      />
+      {open && <span className="info-tooltip">{text}</span>}
+    </span>
+  );
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -271,7 +296,7 @@ function SalesTab() {
       <div className="section">
         <div className="section-title" style={{ marginBottom: 16 }}>
           My clients
-          <i className="ti ti-info-circle info" />
+          <InfoTip text="This shows who your customers are and how they behave. You can see new customers and returning customers, as well as the average basket. This helps you better understand your customer base and identify trends that can support your decisions. The trend indicator compares the selected period to the previous period. For example: from the 1st to the 15th of this month compared to the same period of the previous month." />
         </div>
         <div className="clients-grid">
           <ClientCell
@@ -413,6 +438,9 @@ const CSS = `
 .section { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 16px; }
 .section-title { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
 .section-title i.info { font-size: 15px; color: var(--text-tertiary); cursor: pointer; }
+.info-wrap { position: relative; display: inline-flex; align-items: center; }
+.info-tooltip { position: absolute; top: calc(100% + 8px); left: 0; z-index: 50; width: 320px; background: var(--navy); color: #fff; font-size: 12px; line-height: 1.5; font-weight: 400; padding: 10px 12px; border-radius: 8px; box-shadow: 0 6px 20px rgba(26,31,60,0.18); }
+.info-tooltip::before { content: ""; position: absolute; top: -5px; left: 8px; width: 10px; height: 10px; background: var(--navy); transform: rotate(45deg); border-radius: 2px; }
 .section-big-number { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
 
 .chart-area { width: 100%; }
