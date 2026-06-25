@@ -588,6 +588,13 @@ const CSS = `
 .store-menu-item:hover { background: var(--page-bg); }
 .store-menu-item.active { background: var(--page-bg); font-weight: 500; }
 
+.dd-wrap { position: relative; display: inline-block; }
+.dd-menu { position: absolute; top: calc(100% + 6px); left: 0; min-width: 160px; background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(26,31,60,0.10); padding: 4px; z-index: 40; max-height: 280px; overflow-y: auto; }
+.dd-menu.right { left: auto; right: 0; }
+.dd-item { padding: 7px 12px; font-size: 12.5px; color: var(--text-primary); border-radius: 6px; cursor: pointer; font-family: var(--font); white-space: nowrap; }
+.dd-item:hover { background: var(--bg); }
+.dd-item.active { background: var(--bg); font-weight: 500; }
+
 .tabs-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
 .tabs { display: flex; gap: 0; flex-shrink: 0; }
 .tab { display: flex; align-items: center; gap: 5px; padding: 10px 14px; font-size: 12.5px; color: var(--text-secondary); cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; white-space: nowrap; font-family: var(--font); }
