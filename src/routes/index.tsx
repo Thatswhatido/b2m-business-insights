@@ -26,6 +26,60 @@ function InfoTip({ text }: { text: string }) {
   );
 }
 
+function Dropdown<T extends string>({
+  value,
+  options,
+  onChange,
+  icon,
+  className = "filter-select",
+  menuAlign = "left",
+  minWidth,
+}: {
+  value: T;
+  options: readonly T[];
+  onChange: (v: T) => void;
+  icon?: string;
+  className?: string;
+  menuAlign?: "left" | "right";
+  minWidth?: number;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [open]);
+  return (
+    <div className="dd-wrap" ref={ref} style={minWidth ? { minWidth } : undefined}>
+      <div className={className} onClick={() => setOpen((v) => !v)} role="button" tabIndex={0}>
+        {icon && <i className={`ti ${icon}`} />}
+        <span>{value}</span>
+        <i className="ti ti-chevron-down chevron" />
+      </div>
+      {open && (
+        <div className={`dd-menu ${menuAlign === "right" ? "right" : ""}`}>
+          {options.map((o) => (
+            <div
+              key={o}
+              className={`dd-item${o === value ? " active" : ""}`}
+              onClick={() => {
+                onChange(o);
+                setOpen(false);
+              }}
+            >
+              {o}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
