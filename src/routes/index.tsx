@@ -1115,7 +1115,7 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
   );
 }
 
-function ForecastTab({ year, month, store }: { year: string; month: string; store: string }) {
+function ForecastTab({ year, month, store }: { year: string; month: string; store: Store }) {
   const [scenario, setScenario] = useState<"Conservative" | "Base" | "Optimistic">("Base");
   const [horizon, setHorizon] = useState<"4 weeks" | "8 weeks" | "12 weeks">("8 weeks");
 
@@ -1127,12 +1127,13 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
     return Math.round(lo + f * (hi - lo));
   };
   const scenarioMult = scenario === "Optimistic" ? 1.12 : scenario === "Conservative" ? 0.88 : 1;
-  const thisWeek = Math.round(r(1, 7400, 9800) * scenarioMult);
-  const peak = Math.round(r(2, 10400, 12600) * scenarioMult);
+  const storeMult = STORE_WEIGHTS[store];
+  const thisWeek = Math.round(r(1, 7400, 9800) * scenarioMult * storeMult);
+  const peak = Math.round(r(2, 10400, 12600) * scenarioMult * storeMult);
   const peakWk = r(3, 1, 4);
-  const trough = Math.round(r(4, 5800, 7400) * scenarioMult);
+  const trough = Math.round(r(4, 5800, 7400) * scenarioMult * storeMult);
   const troughWk = r(5, 5, 8);
-  const projected = Math.round(r(6, 95000, 145000) * scenarioMult);
+  const projected = Math.round(r(6, 95000, 145000) * scenarioMult * storeMult);
   const horizonWeeks = horizon === "4 weeks" ? 4 : horizon === "12 weeks" ? 12 : 8;
   const fmt = (n: number) => `${n.toLocaleString("fr-FR").replace(/\u202f/g, " ")} EUR`;
 
