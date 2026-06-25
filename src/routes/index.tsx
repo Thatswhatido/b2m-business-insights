@@ -1317,26 +1317,16 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
           </g>
 
           {/* Signal zones */}
-          <rect x="329" y="14" width="96" height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />
-          <rect x="533" y="14" width="96" height="198" fill="url(#sigRed)" clipPath="url(#chartClip)" />
-          <rect x="635" y="14" width="96" height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />
-
-          <line x1="329" y1="14" x2="329" y2="212" stroke="#1ED760" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="425" y1="14" x2="425" y2="212" stroke="#1ED760" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="533" y1="14" x2="533" y2="212" stroke="#D0312D" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="629" y1="14" x2="629" y2="212" stroke="#D0312D" strokeWidth="0.8" strokeDasharray="3 3" />
-          <line x1="635" y1="14" x2="635" y2="212" stroke="#1ED760" strokeWidth="0.8" strokeDasharray="3 3" />
+          {sigGreen1 && <rect x={sigGreen1.x} y="14" width={sigGreen1.w} height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />}
+          {sigRed && <rect x={sigRed.x} y="14" width={sigRed.w} height="198" fill="url(#sigRed)" clipPath="url(#chartClip)" />}
+          {sigGreen2 && <rect x={sigGreen2.x} y="14" width={sigGreen2.w} height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />}
 
           {/* Confidence band */}
-          <path
-            clipPath="url(#chartClip)"
-            d="M299,113 C320,108 335,96 350,90 C365,84 385,48 401,52 C417,56 435,68 452,78 C469,88 487,96 503,104 C519,112 535,128 554,142 C573,156 590,138 605,128 C620,118 638,110 656,116 C674,122 690,102 707,72 L707,140 C690,166 674,152 656,146 C638,140 620,148 605,158 C590,168 573,186 554,172 C535,158 519,142 503,134 C487,126 469,118 452,108 C435,98 417,86 401,82 C385,78 365,114 350,120 C335,126 320,128 299,133 Z"
-            fill="url(#bandFill)"
-          />
+          <path clipPath="url(#chartClip)" d={bandPath} fill="url(#bandFill)" />
 
           {/* Today line */}
-          <line x1="299" y1="14" x2="299" y2="212" stroke="#1A1D3B" strokeWidth="1" strokeDasharray="4 3" />
-          <text x="303" y="12" fontSize="9" fill="#1A1D3B" fontFamily="Inter,sans-serif" fontWeight="600">today</text>
+          <line x1={todayX} y1="14" x2={todayX} y2="212" stroke="#1A1D3B" strokeWidth="1" strokeDasharray="4 3" />
+          <text x={todayX + 4} y="12" fontSize="9" fill="#1A1D3B" fontFamily="Inter,sans-serif" fontWeight="600">today</text>
 
           {/* Actual line (navy solid) */}
           <path
@@ -1345,10 +1335,10 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
             strokeWidth="2.2"
             strokeLinejoin="round"
             strokeLinecap="round"
-            d="M44,126 C60,126 75,122 95,122 C115,122 125,128 146,128 C167,128 180,115 197,115 C214,115 230,109 248,109 C266,109 282,113 299,113"
+            d={actualPath}
           />
-          {[[44,126],[95,122],[146,128],[197,115],[248,109],[299,113]].map(([x, y]) => (
-            <circle key={`a${x}`} cx={x} cy={y} r="3.5" fill="#1A1D3B" stroke="white" strokeWidth="1.5" />
+          {actualPts.map(([x, y], i) => (
+            <circle key={`a${i}`} cx={x} cy={y} r="3.5" fill="#1A1D3B" stroke="white" strokeWidth="1.5" />
           ))}
 
           {/* Forecast line (cyan dashed) */}
@@ -1360,18 +1350,20 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
             strokeLinecap="round"
             d={forecastPath}
           />
-          {forecastDots.map(([x, y]) => (
-            <rect key={`f${x}`} x={x - 4} y={y - 4} width="8" height="8" rx="2" fill="#4FC3D9" stroke="white" strokeWidth="1.5" />
+          {forecastDots.map(([x, y], i) => (
+            <rect key={`f${i}`} x={x - 4} y={y - 4} width="8" height="8" rx="2" fill="#4FC3D9" stroke="white" strokeWidth="1.5" />
           ))}
 
           {/* X axis labels */}
           <g fontSize="9.5" fill="#4A4A6A" fontFamily="Inter,sans-serif" textAnchor="middle">
-            {["Wk -5","Wk -4","Wk -3","Wk -2","Wk -1","Now","Wk +1","Wk +2","Wk +3","Wk +4","Wk +5","Wk +6","Wk +7","Wk +8"].map((l, i) => (
-              <text key={l} x={44 + i * 51} y="225">{l}</text>
+            {xLabels.map((l) => (
+              <text key={l.label} x={l.x} y="225">{l.label}</text>
             ))}
           </g>
         </svg>
       </div>
+
+
 
       {/* Signals + Scenarios */}
       <div className="two-col-forecast">
