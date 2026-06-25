@@ -113,6 +113,13 @@ const PRODUCTS = ["All products", "Lunch", "Eco"] as const;
 type Year = (typeof YEARS)[number];
 type Month = (typeof MONTHS)[number];
 type Product = (typeof PRODUCTS)[number];
+type Store = (typeof STORES)[number];
+const STORE_WEIGHTS: Record<Store, number> = {
+  "All stores": 1,
+  Center: 0.45,
+  Issy: 0.30,
+  Blanche: 0.25,
+};
 
 function Dashboard() {
   const [tab, setTab] = useState<TabId>("sales");
