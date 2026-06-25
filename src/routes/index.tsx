@@ -226,21 +226,23 @@ function Dashboard() {
           </div>
 
           {/* Filters */}
-          <div className="filter-row">
-            <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
-            <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
-            {tab !== "sector" && (
-              <div className="filter-right">
-                <Dropdown
-                  value={product}
-                  options={PRODUCTS}
-                  onChange={setProduct}
-                  className="product-select"
-                  menuAlign="right"
-                />
-              </div>
-            )}
-          </div>
+          {tab !== "forecast" && (
+            <div className="filter-row">
+              <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
+              <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
+              {tab !== "sector" && (
+                <div className="filter-right">
+                  <Dropdown
+                    value={product}
+                    options={PRODUCTS}
+                    onChange={setProduct}
+                    className="product-select"
+                    menuAlign="right"
+                  />
+                </div>
+              )}
+            </div>
+          )}
 
           {tab === "sales" ? (
             <SalesTab year={year} month={month} product={product} />
@@ -248,6 +250,8 @@ function Dashboard() {
             <BenchmarkTab year={year} month={month} product={product} />
           ) : tab === "sector" ? (
             <SectorHealthTab year={year} month={month} product={product} />
+          ) : tab === "forecast" ? (
+            <ForecastTab />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
