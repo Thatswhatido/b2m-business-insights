@@ -2593,7 +2593,7 @@ const CSS = `
 .insight-action:hover { background: #2A2F55; }
 `;
 
-function HomeTab() {
+function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => void; onOpenForecast: () => void }) {
   return (
     <div className="home-wrap">
       <h1 className="welcome-heading">Welcome, John</h1>
