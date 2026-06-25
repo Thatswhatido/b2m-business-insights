@@ -631,10 +631,11 @@ function ClientCell({
   );
 }
 
-function BenchmarkTab({ year, month, product }: { year: Year; month: Month; product: Product }) {
-  const seed = hash(`bench|${year}|${month}|${product}`);
+function BenchmarkTab({ year, month, product, store }: { year: Year; month: Month; product: Product; store: Store }) {
+  const seed = hash(`bench|${year}|${month}|${product}|${store}`);
   const yearMult = year === "2023" ? 0.55 : year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
   const productMult = product === "All products" ? 1 : product === "Lunch" ? 0.7 : 0.3;
+  const storeMult = STORE_WEIGHTS[store];
 
   const yearNum = parseInt(year, 10);
   const isCurrentYear = yearNum === TODAY_YEAR;
