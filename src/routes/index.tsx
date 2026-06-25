@@ -296,7 +296,7 @@ function SalesTab() {
       <div className="section">
         <div className="section-title" style={{ marginBottom: 16 }}>
           My clients
-          <i className="ti ti-info-circle info" />
+          <InfoTip text="This shows who your customers are and how they behave. You can see new customers and returning customers, as well as the average basket. This helps you better understand your customer base and identify trends that can support your decisions. The trend indicator compares the selected period to the previous period. For example: from the 1st to the 15th of this month compared to the same period of the previous month." />
         </div>
         <div className="clients-grid">
           <ClientCell
