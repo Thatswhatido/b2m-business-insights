@@ -1175,23 +1175,23 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
       <div className="kpi-grid-4">
         <div className="kpi-card">
           <p className="kpi-label">This week actual</p>
-          <p className="kpi-value">8 640 EUR</p>
+          <p className="kpi-value">{fmt(thisWeek)}</p>
           <p className="kpi-caption">Wk 18 · in progress</p>
         </div>
         <div className="kpi-card highlight-success">
           <p className="kpi-label">Forecast peak</p>
-          <p className="kpi-value text-success">11 200 EUR</p>
-          <p className="kpi-caption">Wk +2 · budget load</p>
+          <p className="kpi-value text-success">{fmt(peak)}</p>
+          <p className="kpi-caption">Wk +{peakWk} · budget load</p>
         </div>
         <div className="kpi-card highlight-danger">
           <p className="kpi-label">Forecast trough</p>
-          <p className="kpi-value text-danger">6 800 EUR</p>
-          <p className="kpi-caption">Wk +6 · sector contraction</p>
+          <p className="kpi-value text-danger">{fmt(trough)}</p>
+          <p className="kpi-caption">Wk +{troughWk} · sector contraction</p>
         </div>
         <div className="kpi-card">
           <p className="kpi-label">Projected total</p>
-          <p className="kpi-value">120 940 EUR</p>
-          <p className="kpi-caption">Next 8 weeks</p>
+          <p className="kpi-value">{fmt(projected)}</p>
+          <p className="kpi-caption">Next {horizonWeeks} weeks · {store}{month !== "All months" ? ` · ${month} ${year}` : ` · ${year}`}</p>
         </div>
       </div>
 
@@ -1200,7 +1200,7 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
         <div className="forecast-chart-header">
           <div>
             <p className="forecast-chart-title">Revenue projection</p>
-            <p className="forecast-chart-subtitle">Actual + 8-week forecast · {scenario.toLowerCase()} scenario</p>
+            <p className="forecast-chart-subtitle">Actual + {horizonWeeks}-week forecast · {scenario.toLowerCase()} scenario · {store}</p>
           </div>
           <div className="forecast-legend">
             <span><span className="legend-line" />Actual</span>
