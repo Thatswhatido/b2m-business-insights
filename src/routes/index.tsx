@@ -190,7 +190,11 @@ function Dashboard() {
         {/* Main */}
         <main className="main">
           {view === "home" ? (
-            <HomeTab />
+            <HomeTab
+              onViewDashboard={() => { setView("insights"); setTab("sales"); }}
+              onOpenForecast={() => { setView("insights"); setTab("forecast"); }}
+            />
+
           ) : (
           <>
 
@@ -2589,7 +2593,7 @@ const CSS = `
 .insight-action:hover { background: #2A2F55; }
 `;
 
-function HomeTab() {
+function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => void; onOpenForecast: () => void }) {
   return (
     <div className="home-wrap">
       <h1 className="welcome-heading">Welcome, John</h1>
@@ -2648,10 +2652,11 @@ function HomeTab() {
             <p className="recap-headline">Strong week, your basket grew faster than the sector</p>
             <p className="recap-period">12 - 18 May 2026 · vs previous week</p>
           </div>
-          <a href="#" className="recap-cta">
+          <button type="button" onClick={onViewDashboard} className="recap-cta">
             View full dashboard
             <i className="ti ti-arrow-right" />
-          </a>
+          </button>
+
         </div>
 
         <div className="recap-revenue-row">
@@ -2718,10 +2723,11 @@ function HomeTab() {
             <p className="insight-title">Budget load week starts Monday</p>
             <p className="insight-desc">Top employers in your area typically load meal vouchers next week. Expect +20-30% footfall. Make sure stock and staff are ready.</p>
           </div>
-          <a href="#" className="insight-action">
+          <button type="button" onClick={onOpenForecast} className="insight-action">
             Open forecast
             <i className="ti ti-arrow-right" />
-          </a>
+          </button>
+
         </div>
       </div>
     </div>
