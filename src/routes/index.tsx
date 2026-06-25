@@ -298,7 +298,10 @@ function Dashboard() {
               </p>
             </div>
           )}
+          </>
+          )}
         </main>
+
       </div>
     </div>
   );
