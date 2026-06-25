@@ -106,8 +106,7 @@ const STORES = ["All stores", "Center", "Issy", "Blanche"] as const;
 const YEARS = ["2024", "2025", "2026"] as const;
 const MONTHS = [
   "All months",
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
-  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
 ] as const;
 const PRODUCTS = ["All products", "Lunch", "Eco"] as const;
 
