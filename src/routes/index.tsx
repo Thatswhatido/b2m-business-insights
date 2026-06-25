@@ -306,7 +306,7 @@ function rand(seed: number, i: number) {
   return x - Math.floor(x);
 }
 function fmtEUR(n: number) {
-  return n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " EUR";
+  return Math.round(n).toLocaleString("fr-FR") + " EUR";
 }
 
 function buildData(year: Year, month: Month, product: Product) {
