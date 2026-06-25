@@ -229,7 +229,7 @@ function Dashboard() {
                 </button>
               ))}
             </div>
-            <div className="tab-badge">B</div>
+            
           </div>
 
           {tab !== "comparison" && tab !== "reports" && (
