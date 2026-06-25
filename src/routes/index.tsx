@@ -232,7 +232,7 @@ function Dashboard() {
             <div className="tab-badge">B</div>
           </div>
 
-          {tab !== "comparison" && tab !== "segments" && (
+          {tab !== "comparison" && (
             <div className="filter-row">
               <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
               <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
