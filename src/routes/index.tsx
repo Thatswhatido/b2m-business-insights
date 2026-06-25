@@ -234,29 +234,21 @@ function Dashboard() {
 
           {/* Filters */}
           <div className="filter-row">
-            <div className="filter-select">
-              <i className="ti ti-calendar" />
-              <span>2026</span>
-              <i className="ti ti-chevron-down chevron" />
-            </div>
-            <div className="filter-select">
-              <i className="ti ti-calendar" />
-              <span>All months</span>
-              <i className="ti ti-chevron-down chevron" />
-            </div>
+            <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
+            <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
             <div className="filter-right">
-              <div className="product-select">
-                <span>All products</span>
-                <i
-                  className="ti ti-chevron-down"
-                  style={{ fontSize: 13, color: "var(--text-tertiary)" }}
-                />
-              </div>
+              <Dropdown
+                value={product}
+                options={PRODUCTS}
+                onChange={setProduct}
+                className="product-select"
+                menuAlign="right"
+              />
             </div>
           </div>
 
           {tab === "sales" ? (
-            <SalesTab />
+            <SalesTab year={year} month={month} product={product} />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
