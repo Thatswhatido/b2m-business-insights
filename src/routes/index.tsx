@@ -438,6 +438,9 @@ const CSS = `
 .section { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 20px 24px; margin-bottom: 16px; }
 .section-title { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 4px; }
 .section-title i.info { font-size: 15px; color: var(--text-tertiary); cursor: pointer; }
+.info-wrap { position: relative; display: inline-flex; align-items: center; }
+.info-tooltip { position: absolute; top: calc(100% + 8px); left: 0; z-index: 50; width: 320px; background: var(--navy); color: #fff; font-size: 12px; line-height: 1.5; font-weight: 400; padding: 10px 12px; border-radius: 8px; box-shadow: 0 6px 20px rgba(26,31,60,0.18); }
+.info-tooltip::before { content: ""; position: absolute; top: -5px; left: 8px; width: 10px; height: 10px; background: var(--navy); transform: rotate(45deg); border-radius: 2px; }
 .section-big-number { font-size: 22px; font-weight: 600; color: var(--text-primary); margin-bottom: 16px; }
 
 .chart-area { width: 100%; }
