@@ -103,7 +103,7 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const STORES = ["All stores", "Center", "Issy", "Blanche"] as const;
-const YEARS = ["2024", "2025", "2026"] as const;
+const YEARS = ["2023", "2024", "2025", "2026"] as const;
 const MONTHS = [
   "All months",
   "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
