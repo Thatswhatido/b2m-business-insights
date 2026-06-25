@@ -877,4 +877,23 @@ const CSS = `
 .delta.down { color: #C0392B; }
 .delta.flat { color: #B07D2A; }
 .delta.up   { color: #2E7D32; }
+
+.section-subtle { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+.bench-legend { display: inline-flex; gap: 14px; font-size: 11.5px; color: var(--text-secondary); font-weight: 400; }
+.legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+
+.bench-kpi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.bench-kpi { margin-bottom: 0; padding: 16px 18px; }
+.bench-kpi-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+.bench-kpi-split { display: flex; gap: 14px; }
+.bench-kpi-block { flex: 1; }
+.bench-kpi-block.divider { border-left: 0.5px solid var(--border); padding-left: 14px; }
+.bench-kpi-value { font-size: 22px; font-weight: 600; color: var(--text-primary); line-height: 1.1; }
+.bench-kpi-value.muted { color: var(--text-secondary); font-weight: 500; }
+.bench-kpi-caption { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+.bench-kpi-block .delta { margin-top: 6px; }
+
+.info-banner { display: flex; gap: 10px; align-items: flex-start; background: rgba(30,215,96,0.10); border: 0.5px solid rgba(30,215,96,0.30); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 16px; }
+.info-banner i { font-size: 16px; color: var(--green-dark); margin-top: 1px; }
+.info-banner p { margin: 0; font-size: 12.5px; color: var(--navy); line-height: 1.5; }
 `;
