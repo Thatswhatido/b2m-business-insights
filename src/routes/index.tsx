@@ -1849,6 +1849,255 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
   );
 }
 
+const REPORT_PERIODS = ["This month", "Last month", "This quarter", "Last 12 months", "Custom"] as const;
+const REPORT_FORMATS = [
+  { id: "pdf", label: "PDF", desc: "Branded report", icon: "ti-file-type-pdf" },
+  { id: "csv", label: "CSV", desc: "Raw data", icon: "ti-file-type-csv" },
+  { id: "xlsx", label: "Excel", desc: "Spreadsheet", icon: "ti-file-type-xls" },
+] as const;
+
+function ReportsTab({ store }: { store: Store }) {
+  const [period, setPeriod] = useState<(typeof REPORT_PERIODS)[number]>("This quarter");
+  const [format, setFormat] = useState<(typeof REPORT_FORMATS)[number]["id"]>("pdf");
+  const [scheduled, setScheduled] = useState(true);
+  const [sections, setSections] = useState({
+    revenue: true,
+    consumer: true,
+    employer: true,
+    benchmark: false,
+    forecast: false,
+  });
+  const [email, setEmail] = useState("accountant@letournant.be");
+
+  const toggle = (k: keyof typeof sections) =>
+    setSections((s) => ({ ...s, [k]: !s[k] }));
+
+  const periodRange =
+    period === "This month"
+      ? { from: "1 Jun 2026", to: "25 Jun 2026" }
+      : period === "Last month"
+      ? { from: "1 May 2026", to: "31 May 2026" }
+      : period === "This quarter"
+      ? { from: "1 Apr 2026", to: "25 Jun 2026" }
+      : period === "Last 12 months"
+      ? { from: "25 Jun 2025", to: "25 Jun 2026" }
+      : { from: "1 Jan 2026", to: "31 Mar 2026" };
+
+  const storeLabel = store === "All stores" ? "Le Tournant" : `Le Tournant · ${store}`;
+
+  return (
+    <>
+      <div className="reports-layout">
+        {/* LEFT: Builder */}
+        <div>
+          <div className="section">
+            <p className="section-title">
+              <i className="ti ti-file-settings info" />
+              Build a report
+            </p>
+
+            <div className="builder-section">
+              <p className="builder-label">Period</p>
+              <div className="period-chips">
+                {REPORT_PERIODS.map((p) => (
+                  <button
+                    key={p}
+                    className={`chip ${period === p ? "active" : ""}`}
+                    onClick={() => setPeriod(p)}
+                  >
+                    {p}
+                  </button>
+                ))}
+              </div>
+              <div className="period-range">
+                <div className="date-input">
+                  <span className="date-label">From</span>
+                  <span className="date-value">{periodRange.from}</span>
+                </div>
+                <i className="ti ti-arrow-right" style={{ color: "var(--text-secondary)", fontSize: 14 }} />
+                <div className="date-input">
+                  <span className="date-label">To</span>
+                  <span className="date-value">{periodRange.to}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="builder-section">
+              <p className="builder-label">Format</p>
+              <div className="format-grid">
+                {REPORT_FORMATS.map((f) => (
+                  <button
+                    key={f.id}
+                    className={`format-card ${format === f.id ? "active" : ""}`}
+                    onClick={() => setFormat(f.id)}
+                  >
+                    <i className={`ti ${f.icon}`} />
+                    <p className="format-label">{f.label}</p>
+                    <p className="format-desc">{f.desc}</p>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="builder-section">
+              <p className="builder-label">Include in report</p>
+              {[
+                { k: "revenue" as const, name: "Revenue and transactions", desc: "Sales flow, totals, transaction counts" },
+                { k: "consumer" as const, name: "Consumer metrics", desc: "New and known clients, average basket" },
+                { k: "employer" as const, name: "Top employer segments", desc: "Who your Pluxee customers work for" },
+                { k: "benchmark" as const, name: "Sector benchmark", desc: "Your performance vs Brussels restaurants", badge: true },
+                { k: "forecast" as const, name: "Revenue forecast", desc: "8-week projection with confidence range", badge: true, last: true },
+              ].map((row) => (
+                <div key={row.k} className={`toggle-row${row.last ? " last" : ""}`}>
+                  <div className="toggle-body">
+                    <p className="toggle-name">
+                      {row.name}
+                      {row.badge && <span className="silver-badge">Silver</span>}
+                    </p>
+                    <p className="toggle-desc">{row.desc}</p>
+                  </div>
+                  <button
+                    className={`switch ${sections[row.k] ? "on" : ""}`}
+                    onClick={() => toggle(row.k)}
+                    aria-label={`Toggle ${row.name}`}
+                  >
+                    <span className="switch-knob" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <div className="schedule-card">
+              <div className="schedule-toggle-wrap">
+                <div>
+                  <p className="schedule-title">
+                    <i className="ti ti-calendar-time" style={{ fontSize: 15, verticalAlign: -2, marginRight: 6 }} />
+                    Scheduled export
+                  </p>
+                  <p className="schedule-desc">Send monthly to an email address</p>
+                </div>
+                <button
+                  className={`switch ${scheduled ? "on" : ""}`}
+                  onClick={() => setScheduled((s) => !s)}
+                  aria-label="Toggle scheduled export"
+                >
+                  <span className="switch-knob" />
+                </button>
+              </div>
+              {scheduled && (
+                <div className="schedule-fields">
+                  <select className="schedule-select">
+                    <option>Monthly · 1st of the month</option>
+                    <option>Weekly · Monday</option>
+                    <option>Quarterly</option>
+                  </select>
+                  <input
+                    type="text"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="email-input"
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="builder-actions">
+              <button className="action-btn secondary">
+                <i className="ti ti-share" style={{ fontSize: 14, verticalAlign: -2, marginRight: 6 }} />
+                Share
+              </button>
+              <button className="action-btn primary">
+                <i className="ti ti-download" style={{ fontSize: 14, verticalAlign: -2, marginRight: 6 }} />
+                Download
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: Preview + history */}
+        <div className="report-sidebar">
+          <div className="section">
+            <p className="section-title">
+              <i className="ti ti-eye info" />
+              Preview
+            </p>
+            <div className="preview-doc">
+              <div className="preview-header">
+                <div className="preview-logo">P</div>
+                <div>
+                  <p className="preview-title">{storeLabel} · {period}</p>
+                  <p className="preview-subtitle">{periodRange.from} – {periodRange.to}</p>
+                </div>
+              </div>
+              {sections.revenue && (
+                <div className="preview-section">
+                  <p className="preview-section-title">Revenue and transactions</p>
+                  <div className="preview-bars">
+                    {[30, 50, 65, 45, 70, 55].map((h, i) => (
+                      <div key={i} className="preview-bar" style={{ height: `${h}%` }} />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {sections.consumer && (
+                <div className="preview-section">
+                  <p className="preview-section-title">Consumer metrics</p>
+                  <div className="preview-kpi-row">
+                    <div className="preview-kpi"><div className="preview-kpi-val">45</div><div className="preview-kpi-lbl">New</div></div>
+                    <div className="preview-kpi"><div className="preview-kpi-val">145</div><div className="preview-kpi-lbl">Known</div></div>
+                    <div className="preview-kpi"><div className="preview-kpi-val">15€</div><div className="preview-kpi-lbl">Basket</div></div>
+                  </div>
+                </div>
+              )}
+              {sections.employer && (
+                <div className="preview-section">
+                  <p className="preview-section-title">Top employer segments</p>
+                  <div className="preview-line" />
+                  <div className="preview-line short" />
+                  <div className="preview-line" />
+                </div>
+              )}
+              <div className="preview-pages">
+                Page 1 of {Object.values(sections).filter(Boolean).length + 1}
+              </div>
+            </div>
+          </div>
+
+          <div className="section">
+            <p className="section-title">
+              <i className="ti ti-history info" />
+              Recent exports
+            </p>
+            {[
+              { icon: "ti-file-type-pdf", name: `${storeLabel} · Q4 2025`, meta: "PDF · 412 KB · 8 Jan 2026" },
+              { icon: "ti-file-type-xls", name: `${storeLabel} · December 2025`, meta: "Excel · 86 KB · 2 Jan 2026" },
+              { icon: "ti-file-type-pdf", name: `${storeLabel} · November 2025`, meta: "PDF · 388 KB · 1 Dec 2025", last: true },
+            ].map((h, i) => (
+              <div key={i} className={`history-row${h.last ? " last" : ""}`}>
+                <div className="history-icon"><i className={`ti ${h.icon}`} /></div>
+                <div className="history-body">
+                  <p className="history-name">{h.name}</p>
+                  <p className="history-meta">{h.meta}</p>
+                </div>
+                <button className="history-action" aria-label="Download">
+                  <i className="ti ti-download" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="info-banner" style={{ marginTop: 16 }}>
+        <i className="ti ti-info-circle" />
+        <p>
+          Reports are generated on demand and include the data available at export time. Scheduled exports are sent on the morning of the chosen day.
+        </p>
+      </div>
+    </>
+  );
+}
+
 const CSS = `
 .pluxee-app {
   --navy: #1A1F3C;
