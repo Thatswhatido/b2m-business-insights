@@ -242,6 +242,8 @@ function Dashboard() {
 
           {tab === "sales" ? (
             <SalesTab year={year} month={month} product={product} />
+          ) : tab === "benchmark" ? (
+            <BenchmarkTab year={year} month={month} product={product} />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
@@ -616,6 +618,153 @@ function ClientCell({
   );
 }
 
+function BenchmarkTab({ year, month, product }: { year: Year; month: Month; product: Product }) {
+  const seed = hash(`bench|${year}|${month}|${product}`);
+  const yearMult = year === "2023" ? 0.55 : year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
+  const productMult = product === "All products" ? 1 : product === "Lunch" ? 0.7 : 0.3;
+
+  const yearNum = parseInt(year, 10);
+  const isCurrentYear = yearNum === TODAY_YEAR;
+  const lastIdx = month === "All months"
+    ? (isCurrentYear ? TODAY_MONTH_IDX - 1 : 11)
+    : MONTH_LABELS.indexOf(month as (typeof MONTH_LABELS)[number]);
+  const monthsArr = MONTH_LABELS.slice(0, Math.max(1, lastIdx + 1));
+
+  // Highlight index = selected month, or peak month otherwise
+  const peakIdx = monthsArr.length - 1;
+
+  const pairs = monthsArr.map((m, i) => {
+    const mine = Math.round((500 + rand(seed, i + 1) * 900) * yearMult * productMult);
+    const peers = Math.round(mine * (0.75 + rand(seed, 80 + i) * 0.5));
+    return { label: m, mine, peers };
+  });
+
+  const max = Math.max(...pairs.flatMap((p) => [p.mine, p.peers]), 1);
+  const chartW = 680;
+  const chartH = 220;
+  const left = 48;
+  const innerW = chartW - left - 8;
+  const slot = innerW / pairs.length;
+  const barW = Math.min(14, slot * 0.32);
+  const topY = 24;
+  const baseY = 170;
+  const usableH = baseY - topY;
+  const ticks = [max, max * 0.66, max * 0.33, 0];
+
+  const peersCount = 40 + Math.floor(rand(seed, 200) * 10);
+  const mkKpi = (k: number, baseMine: number, basePeer: number, suffix = "") => {
+    const mine = Math.round(baseMine * (0.9 + rand(seed, 300 + k) * 0.3));
+    const peer = Math.round(basePeer * (0.9 + rand(seed, 400 + k) * 0.3));
+    const dMine = (rand(seed, 500 + k) - 0.3) * 30;
+    const dPeer = (rand(seed, 600 + k) - 0.4) * 20;
+    const fmt = (d: number) => {
+      const cls = d > 1 ? "up" : d < -1 ? "down" : "flat";
+      return { cls: cls as "up" | "down" | "flat", label: `${d >= 0 ? "↗" : "↘"} ${Math.abs(d).toFixed(0)}%` };
+    };
+    return {
+      mine: `${mine}${suffix}`, peer: `${peer}${suffix}`,
+      dMine: fmt(dMine), dPeer: fmt(dPeer),
+    };
+  };
+  const newC = mkKpi(1, 45, 38);
+  const knownC = mkKpi(2, 145, 132);
+  const basket = mkKpi(3, 15, 19, " EUR");
+
+  return (
+    <>
+      <div className="section">
+        <div className="section-title" style={{ justifyContent: "space-between" }}>
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+            Revenue vs peers
+            <InfoTip text={`Benchmark based on ${peersCount} peers within a 2 km radius and the same average basket bracket. Bars compare your monthly revenue to the peer average so you can see how you trend against similar stores.`} />
+          </span>
+          <span className="bench-legend">
+            <span><span className="legend-dot" style={{ background: "var(--navy)" }} />Your store</span>
+            <span><span className="legend-dot" style={{ background: "var(--green)" }} />Peers (avg)</span>
+          </span>
+        </div>
+        <div className="section-subtle">{peersCount} peers · 2 km radius · same avg basket bracket</div>
+
+        <div className="chart-area" style={{ marginTop: 16 }}>
+          <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: 220 }} role="img" aria-label="Revenue vs peers">
+            <g stroke="rgba(26,31,60,0.08)" strokeWidth="0.5">
+              {ticks.map((_, i) => {
+                const y = topY + (usableH * i) / 3;
+                return <line key={i} x1={left} y1={y} x2={chartW} y2={y} />;
+              })}
+            </g>
+            <g fontSize="9.5" fill="#9B9A95" fontFamily="Inter, sans-serif" textAnchor="end">
+              {ticks.map((t, i) => {
+                const y = topY + (usableH * i) / 3 + 4;
+                return <text key={i} x={40} y={y}>{Math.round(t).toLocaleString()}</text>;
+              })}
+            </g>
+            {pairs.map((p, i) => {
+              const hMine = (p.mine / max) * usableH;
+              const hPeer = (p.peers / max) * usableH;
+              const cx = left + slot * i + slot / 2;
+              const xMine = cx - barW - 1;
+              const xPeer = cx + 1;
+              const isPeak = i === peakIdx;
+              return (
+                <g key={p.label + i}>
+                  <rect x={xMine} y={baseY - hMine} width={barW} height={hMine} rx={3}
+                    fill="var(--navy)"
+                    stroke={isPeak ? "var(--green)" : "none"} strokeWidth={isPeak ? 1.5 : 0} />
+                  <rect x={xPeer} y={baseY - hPeer} width={barW} height={hPeer} rx={3} fill="var(--green)" opacity={0.85} />
+                </g>
+              );
+            })}
+            <g fontSize="10" fill="#5F5E5A" fontFamily="Inter, sans-serif" textAnchor="middle">
+              {pairs.map((p, i) => (
+                <text key={p.label + i} x={left + slot * i + slot / 2} y={190}>{p.label}</text>
+              ))}
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <div className="bench-kpi-grid">
+        <BenchKpi label="New clients" mine={newC.mine} peer={newC.peer} dMine={newC.dMine} dPeer={newC.dPeer} />
+        <BenchKpi label="Known clients" mine={knownC.mine} peer={knownC.peer} dMine={knownC.dMine} dPeer={knownC.dPeer} />
+        <BenchKpi label="Average basket" mine={basket.mine} peer={basket.peer} dMine={basket.dMine} dPeer={basket.dPeer} />
+      </div>
+
+      <div className="info-banner">
+        <i className="ti ti-info-circle" />
+        <p>Benchmark based on {peersCount} peers within 2 km, same average basket range. High confidence.</p>
+      </div>
+    </>
+  );
+}
+
+function BenchKpi({
+  label, mine, peer, dMine, dPeer,
+}: {
+  label: string;
+  mine: string; peer: string;
+  dMine: { cls: "up" | "down" | "flat"; label: string };
+  dPeer: { cls: "up" | "down" | "flat"; label: string };
+}) {
+  return (
+    <div className="section bench-kpi">
+      <div className="bench-kpi-label">{label}</div>
+      <div className="bench-kpi-split">
+        <div className="bench-kpi-block">
+          <div className="bench-kpi-value">{mine}</div>
+          <div className="bench-kpi-caption">Your store</div>
+          <div className={`delta ${dMine.cls}`}>{dMine.label}</div>
+        </div>
+        <div className="bench-kpi-block divider">
+          <div className="bench-kpi-value muted">{peer}</div>
+          <div className="bench-kpi-caption">Peer avg</div>
+          <div className={`delta ${dPeer.cls}`}>{dPeer.label}</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 const CSS = `
 .pluxee-app {
   --navy: #1A1F3C;
@@ -728,4 +877,23 @@ const CSS = `
 .delta.down { color: #C0392B; }
 .delta.flat { color: #B07D2A; }
 .delta.up   { color: #2E7D32; }
+
+.section-subtle { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+.bench-legend { display: inline-flex; gap: 14px; font-size: 11.5px; color: var(--text-secondary); font-weight: 400; }
+.legend-dot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 5px; vertical-align: middle; }
+
+.bench-kpi-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.bench-kpi { margin-bottom: 0; padding: 16px 18px; }
+.bench-kpi-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+.bench-kpi-split { display: flex; gap: 14px; }
+.bench-kpi-block { flex: 1; }
+.bench-kpi-block.divider { border-left: 0.5px solid var(--border); padding-left: 14px; }
+.bench-kpi-value { font-size: 22px; font-weight: 600; color: var(--text-primary); line-height: 1.1; }
+.bench-kpi-value.muted { color: var(--text-secondary); font-weight: 500; }
+.bench-kpi-caption { font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+.bench-kpi-block .delta { margin-top: 6px; }
+
+.info-banner { display: flex; gap: 10px; align-items: flex-start; background: rgba(30,215,96,0.10); border: 0.5px solid rgba(30,215,96,0.30); border-radius: var(--radius-md); padding: 12px 14px; margin-bottom: 16px; }
+.info-banner i { font-size: 16px; color: var(--green-dark); margin-top: 1px; }
+.info-banner p { margin: 0; font-size: 12.5px; color: var(--navy); line-height: 1.5; }
 `;
