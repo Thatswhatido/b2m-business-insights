@@ -1656,6 +1656,208 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
   );
 }
 
+const SEG_COLORS = ["#1A1F3C", "#1ED760", "#4FC3D9", "#EF9F27", "#9B9A95"] as const;
+
+const SEG_QUARTERS = ["Q1 2026", "Q4 2025", "Q3 2025", "Q2 2025"] as const;
+const SEG_EMPLOYERS = ["All employers", "Top 10 only", "Finance", "Healthcare", "Public sector", "Tech"] as const;
+const SEG_COMPARE = ["vs last quarter", "vs same quarter last year", "vs sector average"] as const;
+
+function SegmentsTab({ store }: { store: Store }) {
+  const [quarter, setQuarter] = useState<(typeof SEG_QUARTERS)[number]>("Q1 2026");
+  const [emp, setEmp] = useState<(typeof SEG_EMPLOYERS)[number]>("All employers");
+  const [cmp, setCmp] = useState<(typeof SEG_COMPARE)[number]>("vs last quarter");
+
+  const storeMult = STORE_WEIGHTS[store];
+  const seed = hash(`seg|${quarter}|${emp}|${cmp}|${store}`);
+  const r = (i: number, lo: number, hi: number) => lo + rand(seed, i) * (hi - lo);
+
+  const totalSpend = Math.round(r(1, 38000, 46000) * storeMult);
+  const uniqueEmployers = Math.max(1, Math.round(105 * (storeMult === 1 ? 1 : storeMult + 0.4)));
+  const employersDelta = Math.round(r(2, 3, 9));
+  const basket = 13.4 + r(3, -0.6, 1.2);
+  const basketDelta = r(4, 1, 4);
+
+  // 5 segments shares (sum to 100). Use base shares and small noise.
+  const baseShares = [22, 19, 19, 17, 23];
+  const noise = baseShares.map((_, i) => r(10 + i, -2, 2));
+  const raw = baseShares.map((b, i) => Math.max(5, b + noise[i]));
+  const total = raw.reduce((a, b) => a + b, 0);
+  const shares = raw.map((v) => Math.round((v / total) * 100));
+  // Adjust last to make exactly 100
+  shares[shares.length - 1] += 100 - shares.reduce((a, b) => a + b, 0);
+
+  const segments = [
+    { name: "Finance and banking", employers: 22, basket: 16.4, delta: 7 },
+    { name: "Public sector", employers: 20, basket: 11.8, delta: -3 },
+    { name: "Healthcare", employers: 20, basket: 13.2, delta: 12 },
+    { name: "Tech and services", employers: 10, basket: 18.9, delta: 1 },
+    { name: "Other", employers: 33, basket: 12.6, delta: -5 },
+  ].map((s, i) => ({ ...s, share: shares[i], color: SEG_COLORS[i] }));
+
+  // Donut math
+  const C = 2 * Math.PI * 70; // circumference
+  let offset = 0;
+  const arcs = segments.map((s) => {
+    const len = (s.share / 100) * C;
+    const arc = { len, gap: C - len, offset: -offset, color: s.color };
+    offset += len;
+    return arc;
+  });
+
+  const employers = [
+    { tag: "F", color: "#1A1F3C", name: "Proximus", visits: 142, spend: 2150, delta: 18 },
+    { tag: "F", color: "#1A1F3C", name: "BNP Paribas", visits: 128, spend: 2030, delta: 9 },
+    { tag: "H", color: "#4FC3D9", name: "CHU Saint-Pierre", visits: 115, spend: 1520, delta: 14 },
+    { tag: "P", color: "#1ED760", name: "SPF Finance", visits: 98, spend: 1160, delta: -4 },
+    { tag: "T", color: "#EF9F27", name: "Accenture", visits: 76, spend: 1440, delta: 22 },
+  ].map((e) => ({ ...e, visits: Math.max(1, Math.round(e.visits * storeMult)), spend: Math.round(e.spend * storeMult) }));
+
+  const fmtSignedPct = (n: number) => `${n > 0 ? "+" : ""}${n}%`;
+
+  return (
+    <>
+      {/* Local filter row */}
+      <div className="filter-row">
+        <Dropdown value={quarter} options={SEG_QUARTERS} onChange={setQuarter} icon="ti-calendar" />
+        <Dropdown value={emp} options={SEG_EMPLOYERS} onChange={setEmp} icon="ti-building" />
+        <Dropdown value={cmp} options={SEG_COMPARE} onChange={setCmp} icon="ti-arrows-left-right" />
+      </div>
+
+      {/* KPIs */}
+      <div className="kpi-grid-4">
+        <div className="kpi-card">
+          <p className="kpi-label">Unique employers</p>
+          <p className="kpi-value">{uniqueEmployers}</p>
+          <p className="kpi-caption">Brought you customers</p>
+          <p className="delta up" style={{ marginTop: 4 }}>↗ +{employersDelta} vs Q4</p>
+        </div>
+        <div className="kpi-card">
+          <p className="kpi-label">Top segment</p>
+          <p className="kpi-value">Finance</p>
+          <p className="kpi-caption">{segments[0].employers} employers · {segments[0].share}% of spend</p>
+          <p className="delta up" style={{ marginTop: 4 }}>↗ +7%</p>
+        </div>
+        <div className="kpi-card highlight-success">
+          <p className="kpi-label">Fastest growing</p>
+          <p className="kpi-value text-success">Healthcare</p>
+          <p className="kpi-caption">{segments[2].employers} employers · {segments[2].share}% of spend</p>
+          <p className="delta up" style={{ marginTop: 4 }}>↗ +12%</p>
+        </div>
+        <div className="kpi-card">
+          <p className="kpi-label">Avg spend per visit</p>
+          <p className="kpi-value">{basket.toFixed(2)} EUR</p>
+          <p className="kpi-caption">Across all segments</p>
+          <p className="delta up" style={{ marginTop: 4 }}>↗ +{basketDelta.toFixed(0)}%</p>
+        </div>
+      </div>
+
+      {/* Donut */}
+      <div className="cmp-card">
+        <div className="cmp-card-header">
+          <div>
+            <p className="cmp-card-title">Spend by employer segment</p>
+            <p className="cmp-card-subtitle">Share of your Pluxee revenue · {quarter}</p>
+          </div>
+        </div>
+        <div className="seg-donut-layout">
+          <svg viewBox="0 0 200 200" className="seg-donut" role="img" aria-label="Donut chart">
+            <circle cx="100" cy="100" r="70" fill="none" stroke="rgba(26,31,60,0.06)" strokeWidth="28" />
+            {arcs.map((a, i) => (
+              <circle
+                key={i}
+                cx="100"
+                cy="100"
+                r="70"
+                fill="none"
+                stroke={a.color}
+                strokeWidth="28"
+                strokeDasharray={`${a.len.toFixed(2)} ${a.gap.toFixed(2)}`}
+                strokeDashoffset={a.offset.toFixed(2)}
+                transform="rotate(-90 100 100)"
+              />
+            ))}
+            <text x="100" y="95" textAnchor="middle" fontSize="11" fill="var(--text-secondary)" fontFamily="Inter,sans-serif">Total spend</text>
+            <text x="100" y="115" textAnchor="middle" fontSize="16" fontWeight="600" fill="var(--navy)" fontFamily="Inter,sans-serif">{fmtEUR(totalSpend)}</text>
+          </svg>
+          <div className="seg-list">
+            {segments.map((s, i) => (
+              <div key={s.name} className={`seg-row${i === segments.length - 1 ? " last" : ""}`}>
+                <span className="seg-dot" style={{ background: s.color }} />
+                <div className="seg-body">
+                  <p className="seg-name">{s.name}</p>
+                  <p className="seg-caption">{s.employers} employers · avg {s.basket.toFixed(2)} EUR / visit</p>
+                </div>
+                <div className="seg-metric">
+                  <p className="seg-share">{s.share}%</p>
+                  <p className={`seg-delta ${s.delta > 1 ? "up" : s.delta < -1 ? "down" : "flat"}`}>{fmtSignedPct(s.delta)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Two col: Top employers + Momentum */}
+      <div className="cmp-two-col">
+        <div className="cmp-card">
+          <div className="section-title" style={{ marginBottom: 12 }}>
+            <i className="ti ti-building-bank" />Top employers
+          </div>
+          <div className="emp-row emp-header">
+            <span>Employer</span><span>Visits</span><span>Spend</span><span style={{ textAlign: "right" }}>vs Q4</span>
+          </div>
+          {employers.map((e, i) => (
+            <div key={e.name} className={`emp-row${i === employers.length - 1 ? " last" : ""}`}>
+              <div className="emp-name-wrap">
+                <span className="emp-tag" style={{ background: e.color }}>{e.tag}</span>
+                <span className="emp-name">{e.name}</span>
+              </div>
+              <span>{e.visits}</span>
+              <span>{fmtEUR(e.spend)}</span>
+              <span className={`emp-delta ${e.delta >= 0 ? "up" : "down"}`}>{fmtSignedPct(e.delta)}</span>
+            </div>
+          ))}
+        </div>
+
+        <div className="cmp-card">
+          <div className="section-title" style={{ marginBottom: 12 }}>
+            <i className="ti ti-trending-up" />Segment momentum
+          </div>
+          {[
+            { kind: "up", title: "Healthcare growing fastest", desc: "+12% spend, +3 new employers contributing. CHU Saint-Pierre alone added 14% this quarter." },
+            { kind: "down", title: "Public sector cooling", desc: "-3% spend across 20 employers. SPF Finance is the largest contributor to the decline." },
+            { kind: "flat", title: "Tech segment small but high value", desc: "14% of spend from only 10 employers. Highest average basket at 18.90 EUR. Worth nurturing." },
+          ].map((m, i, arr) => (
+            <div key={m.title} className={`mom-row${i === arr.length - 1 ? " last" : ""}`}>
+              <div className={`mom-icon ${m.kind}`}>
+                <i className={`ti ${m.kind === "up" ? "ti-arrow-up-right" : m.kind === "down" ? "ti-arrow-down-right" : "ti-equal"}`} />
+              </div>
+              <div>
+                <p className="mom-title">{m.title}</p>
+                <p className="mom-desc">{m.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Insight */}
+      <div className="insight-card">
+        <div className="insight-icon"><i className="ti ti-bulb" /></div>
+        <div>
+          <p className="insight-title">Healthcare is your growth opportunity</p>
+          <p className="insight-desc">Three healthcare employers contribute 16% of your revenue and grew 12% this quarter. CHU Saint-Pierre is 400m from your store with 1,100 employees. Consider a tailored lunch offer or visible Pluxee signage to capture more of this segment.</p>
+        </div>
+      </div>
+
+      <div className="info-banner">
+        <i className="ti ti-info-circle" />
+        <p>Employer data is aggregated and anonymised at the employer level. No individual employee data is exposed.</p>
+      </div>
+    </>
+  );
+}
+
 const CSS = `
 .pluxee-app {
   --navy: #1A1F3C;
