@@ -48,8 +48,21 @@ const TABS = [
 
 type TabId = (typeof TABS)[number]["id"];
 
+const STORES = ["All stores", "Center", "Issy", "Blanche"] as const;
+
 function Dashboard() {
   const [tab, setTab] = useState<TabId>("sales");
+  const [store, setStore] = useState<(typeof STORES)[number]>("All stores");
+  const [storeOpen, setStoreOpen] = useState(false);
+  const storeRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!storeOpen) return;
+    const onDoc = (e: MouseEvent) => {
+      if (storeRef.current && !storeRef.current.contains(e.target as Node)) setStoreOpen(false);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, [storeOpen]);
 
   return (
     <div className="pluxee-app">
@@ -95,12 +108,35 @@ function Dashboard() {
         <main className="main">
           <div className="page-header">
             <h1 className="page-title">Business insights</h1>
-            <div className="store-select">
-              <span>All stores</span>
-              <i
-                className="ti ti-chevron-down"
-                style={{ fontSize: 14, color: "var(--text-tertiary)" }}
-              />
+            <div className="store-select-wrap" ref={storeRef}>
+              <div
+                className="store-select"
+                onClick={() => setStoreOpen((v) => !v)}
+                role="button"
+                tabIndex={0}
+              >
+                <span>{store}</span>
+                <i
+                  className="ti ti-chevron-down"
+                  style={{ fontSize: 14, color: "var(--text-tertiary)" }}
+                />
+              </div>
+              {storeOpen && (
+                <div className="store-menu">
+                  {STORES.map((s) => (
+                    <div
+                      key={s}
+                      className={`store-menu-item${s === store ? " active" : ""}`}
+                      onClick={() => {
+                        setStore(s);
+                        setStoreOpen(false);
+                      }}
+                    >
+                      {s}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -418,7 +454,12 @@ const CSS = `
 
 .page-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 20px; }
 .page-title { font-size: 22px; font-weight: 600; color: var(--text-primary); }
+.store-select-wrap { position: relative; }
 .store-select { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-md); font-family: var(--font); font-size: 13px; color: var(--text-primary); cursor: pointer; min-width: 180px; justify-content: space-between; }
+.store-menu { position: absolute; top: calc(100% + 6px); right: 0; min-width: 180px; background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 8px 24px rgba(26,31,60,0.10); padding: 4px; z-index: 40; }
+.store-menu-item { padding: 8px 12px; font-size: 13px; color: var(--text-primary); border-radius: 6px; cursor: pointer; font-family: var(--font); }
+.store-menu-item:hover { background: var(--page-bg); }
+.store-menu-item.active { background: var(--page-bg); font-weight: 500; }
 
 .tabs-row { display: flex; align-items: center; justify-content: space-between; border-bottom: 0.5px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
 .tabs { display: flex; gap: 0; flex-shrink: 0; }
