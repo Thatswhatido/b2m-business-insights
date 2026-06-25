@@ -194,7 +194,7 @@ function SalesTab() {
       <div className="section">
         <div className="section-title">
           Pluxee sales over time
-          <i className="ti ti-info-circle info" />
+          <InfoTip text="This shows the total sales made with Pluxee products for the period you have selected. The chart helps you see how your performance evolves. You can use the filter at the top to focus on a specific product or period." />
         </div>
         <div className="section-big-number">2 500,10 EUR</div>
 
