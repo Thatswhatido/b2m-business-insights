@@ -1137,17 +1137,81 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
   const horizonWeeks = horizon === "4 weeks" ? 4 : horizon === "12 weeks" ? 12 : 8;
   const fmt = (n: number) => `${n.toLocaleString("fr-FR").replace(/\u202f/g, " ")} EUR`;
 
-  // Scenario-driven dotted line position: optimistic = top edge of band, conservative = bottom, base = middle
-  const forecastPath = scenario === "Optimistic"
-    ? "M299,113 C320,108 335,96 350,90 C365,84 385,48 401,52 C417,56 435,68 452,78 C469,88 487,96 503,104 C519,112 535,128 554,142 C573,156 590,138 605,128 C620,118 638,110 656,116 C674,122 690,102 707,72"
-    : scenario === "Conservative"
-    ? "M299,133 C320,128 335,128 350,120 C365,114 385,78 401,82 C417,86 435,98 452,108 C469,118 487,126 503,134 C519,142 535,158 554,172 C573,186 590,168 605,158 C620,148 638,140 656,146 C674,152 690,166 707,140"
-    : "M299,123 C320,118 335,111 350,105 C365,99 385,77 401,67 C417,72 435,84 452,93 C469,102 487,110 503,119 C519,128 535,143 554,157 C573,171 590,153 605,143 C620,133 638,126 656,131 C674,136 690,116 707,106";
-  const forecastDots: [number, number][] = scenario === "Optimistic"
-    ? [[350,90],[401,52],[452,78],[503,104],[554,142],[605,128],[656,116],[707,72]]
-    : scenario === "Conservative"
-    ? [[350,120],[401,82],[452,108],[503,134],[554,172],[605,158],[656,146],[707,140]]
-    : [[350,105],[401,67],[452,93],[503,119],[554,157],[605,143],[656,131],[707,106]];
+  // ----- Build chart points procedurally based on horizonWeeks -----
+  const PAST = 5;
+  const totalPts = PAST + 1 + horizonWeeks; // past + now + forecast
+  const X0 = 44;
+  const X1 = 758;
+  const step = (X1 - X0) / (totalPts - 1);
+  const xAt = (i: number) => X0 + i * step;
+  // y mapping: value EUR -> y in [14..212]
+  const yAt = (v: number) => 212 - ((v - 4000) / 9000) * 198;
+  const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
+
+  // Deterministic noise per (seed, horizon)
+  const noise = (i: number, amp: number) => {
+    const x = Math.sin(seed * 131 + i * 977) * 10000;
+    return (x - Math.floor(x) - 0.5) * 2 * amp;
+  };
+
+  // Actuals: 5 past + now (index 0..5)
+  const actualVals: number[] = [];
+  for (let i = 0; i <= PAST; i++) {
+    actualVals.push(clamp(8800 + noise(i, 700) + i * 60, 5500, 12500));
+  }
+  const nowVal = actualVals[PAST];
+
+  // Forecast central curve (one point per future week), with gentle wave
+  const baseFc: number[] = [];
+  for (let i = 1; i <= horizonWeeks; i++) {
+    const wave = Math.sin(i / Math.max(2, horizonWeeks / 3)) * 1400;
+    baseFc.push(clamp(nowVal + wave + noise(100 + i, 600) + i * 20, 4800, 12800));
+  }
+  // Band half-width grows with horizon
+  const bandHalf = (i: number) => 600 + i * 110;
+
+  // Scenario offset on the dotted center line
+  const scenShift = scenario === "Optimistic" ? 1 : scenario === "Conservative" ? -1 : 0;
+  const centerVals = baseFc.map((v, idx) => v + scenShift * bandHalf(idx + 1));
+
+  // Build SVG paths
+  const toPath = (pts: [number, number][]) =>
+    pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+
+  const actualPts: [number, number][] = actualVals.map((v, i) => [xAt(i), yAt(v)]);
+  const forecastPts: [number, number][] = [
+    [xAt(PAST), yAt(nowVal)],
+    ...centerVals.map((v, i) => [xAt(PAST + 1 + i), yAt(v)] as [number, number]),
+  ];
+  const forecastDots: [number, number][] = centerVals.map((v, i) => [xAt(PAST + 1 + i), yAt(v)]);
+
+  // Confidence band polygon
+  const upperPts: [number, number][] = [
+    [xAt(PAST), yAt(nowVal)],
+    ...baseFc.map((v, i) => [xAt(PAST + 1 + i), yAt(v + bandHalf(i + 1))] as [number, number]),
+  ];
+  const lowerPts: [number, number][] = [
+    ...baseFc.map((v, i) => [xAt(PAST + 1 + i), yAt(v - bandHalf(i + 1))] as [number, number]),
+    [xAt(PAST), yAt(nowVal)],
+  ].reverse();
+  const bandPath = `${toPath(upperPts)} ${toPath(lowerPts).replace(/^M/, "L")} Z`;
+
+  const actualPath = toPath(actualPts);
+  const forecastPath = toPath(forecastPts);
+  const todayX = xAt(PAST);
+
+  // X axis labels
+  const xLabels: { x: number; label: string }[] = [];
+  for (let i = 0; i < totalPts; i++) {
+    const offset = i - PAST;
+    const label = offset === 0 ? "Now" : offset < 0 ? `Wk ${offset}` : `Wk +${offset}`;
+    xLabels.push({ x: xAt(i), label });
+  }
+
+  // Signal zones (proportional to horizon)
+  const sigGreen1 = horizonWeeks >= 2 ? { x: xAt(PAST + 1) - step / 2, w: step * Math.min(2, horizonWeeks) } : null;
+  const sigRed = horizonWeeks >= 6 ? { x: xAt(PAST + 5) - step / 2, w: step * Math.min(2, horizonWeeks - 4) } : null;
+  const sigGreen2 = horizonWeeks >= 8 ? { x: xAt(PAST + 7) - step / 2, w: step * Math.min(2, horizonWeeks - 6) } : null;
 
   return (
     <>
