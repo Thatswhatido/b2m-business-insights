@@ -256,6 +256,8 @@ function Dashboard() {
             <SectorHealthTab year={year} month={month} product={product} />
           ) : tab === "forecast" ? (
             <ForecastTab year={year} month={month} store={store} />
+          ) : tab === "comparison" ? (
+            <ComparisonTab year={year} month={month} store={store} />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
