@@ -103,10 +103,30 @@ const TABS = [
 type TabId = (typeof TABS)[number]["id"];
 
 const STORES = ["All stores", "Center", "Issy", "Blanche"] as const;
+const YEARS = ["2024", "2025", "2026"] as const;
+const MONTHS = [
+  "All months",
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+] as const;
+const PRODUCTS = [
+  "All products",
+  "Meal vouchers",
+  "Gift cards",
+  "Eco vouchers",
+  "Wellness",
+] as const;
+
+type Year = (typeof YEARS)[number];
+type Month = (typeof MONTHS)[number];
+type Product = (typeof PRODUCTS)[number];
 
 function Dashboard() {
   const [tab, setTab] = useState<TabId>("sales");
   const [store, setStore] = useState<(typeof STORES)[number]>("All stores");
+  const [year, setYear] = useState<Year>("2026");
+  const [month, setMonth] = useState<Month>("All months");
+  const [product, setProduct] = useState<Product>("All products");
   const [storeOpen, setStoreOpen] = useState(false);
   const storeRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
