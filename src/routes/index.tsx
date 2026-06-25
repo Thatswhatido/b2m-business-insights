@@ -1745,7 +1745,7 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
         <div className="cmp-card-header">
           <div>
             <p className="cmp-card-title">Spend by employer segment</p>
-            <p className="cmp-card-subtitle">Share of your Pluxee revenue · {quarter}</p>
+            <p className="cmp-card-subtitle">Share of your Pluxee revenue · {month === "All months" ? year : `${month} ${year}`}</p>
           </div>
         </div>
         <div className="seg-donut-layout">
