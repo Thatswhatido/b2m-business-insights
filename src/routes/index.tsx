@@ -1574,12 +1574,12 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
         <div className="cmp-card-header">
           <div>
             <p className="cmp-card-title">Weekly revenue</p>
-            <p className="cmp-card-subtitle">Period A vs Period B · sector event marked</p>
+            <p className="cmp-card-subtitle">Period A vs Period B</p>
           </div>
           <div className="cmp-legend">
             <span><span className="legend-dot" style={{ background: "var(--navy)" }} />Period A</span>
             <span><span className="legend-dot dashed" style={{ borderColor: "var(--green-dark)" }} />Period B</span>
-            <span><span className="legend-dot" style={{ background: "#E5A53A" }} />Sector event</span>
+
           </div>
         </div>
 
