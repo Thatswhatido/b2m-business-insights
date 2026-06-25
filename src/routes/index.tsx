@@ -189,6 +189,11 @@ function Dashboard() {
 
         {/* Main */}
         <main className="main">
+          {view === "home" ? (
+            <HomeTab />
+          ) : (
+          <>
+
           <div className="page-header">
             <h1 className="page-title">Business insights</h1>
             <div className="store-select-wrap" ref={storeRef}>
