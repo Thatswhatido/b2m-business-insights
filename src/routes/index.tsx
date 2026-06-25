@@ -366,9 +366,9 @@ function buildData(year: Year, month: Month, product: Product, store: Store) {
   ];
   const employers = [0, 1, 2].map((i) => {
     const name = employerPool[Math.floor(rand(seed, 50 + i) * employerPool.length)];
-    const clients = 8 + Math.floor(rand(seed, 60 + i) * 25);
+    const clients = Math.max(1, Math.round((8 + Math.floor(rand(seed, 60 + i) * 25)) * storeMult));
     const value = 60 + rand(seed, 70 + i) * 110;
-    return { name, clients: `${clients} clients`, value: fmtEUR(value * productMult) };
+    return { name, clients: `${clients} clients`, value: fmtEUR(value * productMult * storeMult) };
   });
   // de-dupe names
   const seen = new Set<string>();
@@ -380,8 +380,8 @@ function buildData(year: Year, month: Month, product: Product, store: Store) {
     return { ...e, name: n };
   });
 
-  const newClients = 20 + Math.floor(rand(seed, 11) * 60 * yearMult);
-  const knownClients = 90 + Math.floor(rand(seed, 12) * 120 * yearMult);
+  const newClients = Math.max(1, Math.round((20 + Math.floor(rand(seed, 11) * 60 * yearMult)) * storeMult));
+  const knownClients = Math.max(1, Math.round((90 + Math.floor(rand(seed, 12) * 120 * yearMult)) * storeMult));
   const avgBasket = Math.round((15 + rand(seed, 13) * 25) * (productMult * 1.4 + 0.3));
 
   const mkDelta = (k: number) => {
