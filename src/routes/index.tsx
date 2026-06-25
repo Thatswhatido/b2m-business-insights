@@ -232,7 +232,7 @@ function Dashboard() {
             <div className="tab-badge">B</div>
           </div>
 
-          {tab !== "comparison" && (
+          {tab !== "comparison" && tab !== "segments" && (
             <div className="filter-row">
               <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
               <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
@@ -261,6 +261,8 @@ function Dashboard() {
             <ForecastTab year={year} month={month} store={store} />
           ) : tab === "comparison" ? (
             <ComparisonTab year={year} month={month} store={store} />
+          ) : tab === "segments" ? (
+            <SegmentsTab store={store} />
           ) : (
             <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
               <div className="section-title" style={{ justifyContent: "center" }}>
