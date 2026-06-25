@@ -1500,7 +1500,43 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
 
   const storeMult = STORE_WEIGHTS[store];
   const seed = hash(`cmp|${year}|${month}|${store}|${periodA}|${periodB}`);
-...
+  const r = (i: number, lo: number, hi: number) => {
+    const v = rand(seed, i);
+    return lo + v * (hi - lo);
+  };
+
+  const revA = Math.round(r(1, 44000, 52000) * storeMult);
+  const revB = Math.round(r(2, 38000, 46000) * storeMult);
+  const diff = revB - revA;
+  const pct = (diff / revA) * 100;
+
+  const txA = Math.round(r(4, 2900, 3400) * storeMult);
+  const txB = Math.round(r(5, 2600, 3100) * storeMult);
+  const basketA = revA / Math.max(1, txA);
+  const basketB = revB / Math.max(1, txB);
+  const newA = Math.round(r(6, 120, 165) * storeMult);
+  const newB = Math.round(r(7, 80, 120) * storeMult);
+  const knownA = Math.round(r(8, 380, 440) * storeMult);
+  const knownB = Math.round(r(9, 400, 460) * storeMult);
+
+  const pctDelta = (a: number, b: number) => ((b - a) / Math.max(1, a)) * 100;
+  const fmtPct = (n: number) => `${n > 0 ? "+" : ""}${n.toFixed(1)}%`;
+
+  const weeksA = Array.from({ length: 6 }, (_, i) => r(20 + i, 5800, 9200) * storeMult);
+  const weeksB = Array.from({ length: 6 }, (_, i) => r(30 + i, 5000, 8200) * storeMult);
+  const all = [...weeksA, ...weeksB];
+  const vMin = Math.min(...all) * 0.9;
+  const vMax = Math.max(...all) * 1.05;
+  const yAt = (v: number) => 20 + ((vMax - v) / (vMax - vMin)) * 135;
+  const xAt = (i: number) => 100 + i * 100;
+  const ptsA = weeksA.map((v, i) => `${xAt(i)},${yAt(v).toFixed(1)}`).join(" ");
+  const ptsB = weeksB.map((v, i) => `${xAt(i)},${yAt(v).toFixed(1)}`).join(" ");
+
+  return (
+    <>
+      {/* Period selector */}
+      <div className="period-selector">
+        <div className="period-block period-a">
           <p className="period-label">Period A</p>
           <div style={{ display: "flex", gap: 8 }}>
             <Dropdown value={yearA} options={YEARS} onChange={(v) => { setYearA(v as Year); setQuick("Custom"); }} icon="ti-calendar" />
