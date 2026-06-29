@@ -580,7 +580,7 @@ function SalesTab({ year, month, product, store }: { year: Year; month: Month; p
           <div className="cross-sell-text">
             <p className="cross-sell-title">Turn your sales data into more customers</p>
             <p className="cross-sell-body">
-              You processed {data.total} via Pluxee this year. Merchants using Pluxee Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
+              You processed {fmtEUR(data.total)} via Pluxee this year. Merchants using Pluxee Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
             </p>
           </div>
           <button type="button" className="cross-sell-cta">
