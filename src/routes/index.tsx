@@ -193,7 +193,6 @@ function Dashboard() {
             <HomeTab
               onViewDashboard={() => { setView("insights"); setTab("sales"); }}
               onOpenForecast={() => { setView("insights"); setTab("forecast"); }}
-              onDiscoverSegments={() => { setView("insights"); setTab("segments"); }}
             />
 
           ) : (
@@ -273,7 +272,7 @@ function Dashboard() {
 
 
           {tab === "sales" ? (
-            <SalesTab year={year} month={month} product={product} store={store} />
+            <SalesTab year={year} month={month} product={product} store={store} onDiscoverSegments={() => { setView("insights"); setTab("segments"); }} />
           ) : tab === "benchmark" ? (
             <BenchmarkTab year={year} month={month} product={product} store={store} />
           ) : tab === "sector" ? (
@@ -438,7 +437,7 @@ function buildData(year: Year, month: Month, product: Product, store: Store) {
   };
 }
 
-function SalesTab({ year, month, product, store }: { year: Year; month: Month; product: Product; store: Store }) {
+function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Year; month: Month; product: Product; store: Store; onDiscoverSegments: () => void }) {
   const data = buildData(year, month, product, store);
   const [hover, setHover] = useState<number | null>(null);
   const bars = data.bars;
@@ -2634,7 +2633,7 @@ const CSS = `
 .cross-sell-cta i { font-size: 14px; }
 `;
 
-function HomeTab({ onViewDashboard, onOpenForecast, onDiscoverSegments }: { onViewDashboard: () => void; onOpenForecast: () => void; onDiscoverSegments: () => void }) {
+function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => void; onOpenForecast: () => void }) {
   return (
     <div className="home-wrap">
       <h1 className="welcome-heading">Welcome, John</h1>
