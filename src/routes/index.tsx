@@ -608,6 +608,10 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
             </div>
           ))}
         </div>
+        <button type="button" onClick={onDiscoverSegments} className="discover-cta" style={{ marginTop: 16 }}>
+          <span className="discover-cta-text">Discover more</span>
+          <i className="ti ti-arrow-right" />
+        </button>
       </div>
 
       {/* My clients */}
