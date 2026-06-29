@@ -193,6 +193,7 @@ function Dashboard() {
             <HomeTab
               onViewDashboard={() => { setView("insights"); setTab("sales"); }}
               onOpenForecast={() => { setView("insights"); setTab("forecast"); }}
+              onDiscoverSegments={() => { setView("insights"); setTab("segments"); }}
             />
 
           ) : (
@@ -2593,7 +2594,7 @@ const CSS = `
 .insight-action:hover { background: #2A2F55; }
 `;
 
-function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => void; onOpenForecast: () => void }) {
+function HomeTab({ onViewDashboard, onOpenForecast, onDiscoverSegments }: { onViewDashboard: () => void; onOpenForecast: () => void; onDiscoverSegments: () => void }) {
   return (
     <div className="home-wrap">
       <h1 className="welcome-heading">Welcome, John</h1>
