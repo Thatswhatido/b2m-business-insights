@@ -2407,6 +2407,7 @@ const CSS = `
 .btn-alert i { font-size: 14px; }
 
 .kpi-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.kpi-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
 .kpi-card { background: var(--white); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 14px 16px; }
 .kpi-card.highlight-success { border-color: rgba(30,215,96,0.4); background: rgba(30,215,96,0.05); }
 .kpi-card.highlight-danger { border-color: rgba(208,49,45,0.35); background: rgba(208,49,45,0.04); }
