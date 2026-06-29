@@ -2592,6 +2592,10 @@ const CSS = `
 .insight-desc { font-size: 11.5px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
 .insight-action { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; background: var(--navy); border: none; border-radius: 999px; font-family: var(--font); font-size: 11.5px; font-weight: 500; color: var(--white); cursor: pointer; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
 .insight-action:hover { background: #2A2F55; }
+
+.discover-cta { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--navy); border: none; border-radius: 999px; font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--white); cursor: pointer; text-decoration: none; margin-top: 18px; }
+.discover-cta:hover { background: #2A2F55; }
+.discover-cta i { font-size: 14px; }
 `;
 
 function HomeTab({ onViewDashboard, onOpenForecast, onDiscoverSegments }: { onViewDashboard: () => void; onOpenForecast: () => void; onDiscoverSegments: () => void }) {
