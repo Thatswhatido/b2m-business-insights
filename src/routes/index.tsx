@@ -1708,7 +1708,7 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
           </div>
         </div>
 
-        <svg viewBox="0 0 640 220" style={{ width: "100%", height: 220 }} role="img" aria-label="Weekly revenue comparison">
+        <svg viewBox="0 0 640 220" style={{ width: "100%", height: 220 }} role="img" aria-label="Weekly revenue comparison" onMouseLeave={() => setCmpHover(null)}>
           <g stroke="var(--border-light)" strokeWidth="0.5">
             {[20, 65, 110, 155].map((y) => <line key={y} x1="40" y1={y} x2="640" y2={y} />)}
           </g>
@@ -1718,9 +1718,6 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
             <text x="32" y="113">{Math.round((vMax + vMin) / 2 / 1000)}k</text>
             <text x="32" y="158">{Math.round(vMin / 1000)}k</text>
           </g>
-
-
-
 
           {/* Period A */}
           <polyline fill="none" stroke="var(--navy)" strokeWidth="2.2" points={ptsA} />
@@ -1733,6 +1730,60 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
           {weeksB.map((v, i) => (
             <circle key={`b${i}`} cx={xAt(i)} cy={yAt(v)} r="4" fill="var(--green-dark)" />
           ))}
+
+          {/* Invisible hit areas */}
+          {weeksA.map((_, i) => {
+            const cx = xAt(i);
+            const hw = 44;
+            return (
+              <rect
+                key={`hit${i}`}
+                x={cx - hw / 2}
+                y={18}
+                width={hw}
+                height={140}
+                fill="transparent"
+                onMouseEnter={() => setCmpHover(i)}
+              />
+            );
+          })}
+
+          {/* Hover tooltip */}
+          {cmpHover !== null && (() => {
+            const cx = xAt(cmpHover);
+            const yA = yAt(weeksA[cmpHover]);
+            const yB = yAt(weeksB[cmpHover]);
+            const topPt = Math.min(yA, yB);
+            const line1 = `Period A ${Math.round(weeksA[cmpHover]).toLocaleString("fr-FR")} EUR`;
+            const line2 = `Period B ${Math.round(weeksB[cmpHover]).toLocaleString("fr-FR")} EUR`;
+            const tw = Math.max(134, (Math.max(line1.length, line2.length)) * 7 + 24);
+            const th = 44;
+            const tipH = 6;
+            const ty = Math.max(2, topPt - tipH - th - 4);
+            const tx = Math.min(Math.max(cx - tw / 2, 2), 640 - tw - 2);
+            const triBaseY = ty + th;
+            const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
+            return (
+              <g pointerEvents="none">
+                <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
+                <polygon
+                  points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
+                  fill="rgba(26,31,60,0.18)"
+                />
+                <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
+                <polygon
+                  points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
+                  fill="var(--navy)"
+                />
+                <text x={tx + 12} y={ty + 18} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
+                  <tspan fill="#C7EBF7">Period A </tspan>{Math.round(weeksA[cmpHover]).toLocaleString("fr-FR")} EUR
+                </text>
+                <text x={tx + 12} y={ty + 34} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
+                  <tspan fill="#A8F0C8">Period B </tspan>{Math.round(weeksB[cmpHover]).toLocaleString("fr-FR")} EUR
+                </text>
+              </g>
+            );
+          })()}
 
           <g fontSize="9.5" fill="var(--text-secondary)" fontFamily="Inter,sans-serif" textAnchor="middle">
             {["Wk 1", "Wk 2", "Wk 3", "Wk 4", "Wk 5", "Wk 6"].map((l, i) => (
