@@ -2401,7 +2401,7 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
           <p className="insight-title">Healthcare is your growth opportunity</p>
           <p className="insight-desc">
             Three healthcare employers contribute 16% of your revenue and grew 12% this quarter. CHU Saint-Pierre is
-            400m from your store with 1,100 employees. Consider a tailored lunch offer or visible Pluxee signage to
+            400m from your store with 1,100 employees. Consider a tailored lunch offer or visible Codename signage to
             capture more of this segment.
           </p>
         </div>
