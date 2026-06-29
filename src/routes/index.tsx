@@ -2817,7 +2817,7 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
               <i className="ti ti-trending-up" />
               +14% vs last week
             </span>
-            <span className="recap-revenue-label">Pluxee revenue this week</span>
+            <span className="recap-revenue-label">Revenue this week</span>
           </div>
         </div>
 
