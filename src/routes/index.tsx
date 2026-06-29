@@ -2770,7 +2770,19 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
 
         </div>
 
-        <button type="button" onClick={onDiscoverSegments} className="discover-cta">
+        <div className="employer-grid">
+          {data.employers.map((e) => (
+            <div className="employer-cell" key={e.name}>
+              <div className="employer-name">
+                {e.name}
+                <i className="ti ti-chart-bar" />
+              </div>
+              <div className="employer-stat">{e.clients}</div>
+              <div className="employer-stat">{e.value}</div>
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={onDiscoverSegments} className="discover-cta" style={{ marginTop: 16 }}>
           <span className="discover-cta-text">Discover more</span>
           <i className="ti ti-arrow-right" />
         </button>
