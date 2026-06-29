@@ -994,6 +994,8 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
   const pointsMine = trend.map((t, i) => `${xAt(i)},${yAt(t.mine)}`).join(" ");
   const pointsSector = trend.map((t, i) => `${xAt(i)},${yAt(t.sector)}`).join(" ");
 
+  const [hover, setHover] = useState<number | null>(null);
+
   const sign = (n: number) => (n > 0 ? `+${n}%` : `${n}%`);
   const deltaCls = (n: number) => (n > 0 ? "up" : n < 0 ? "down" : "flat");
 
