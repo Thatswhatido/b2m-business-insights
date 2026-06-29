@@ -1645,6 +1645,8 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
   const ptsA = weeksA.map((v, i) => `${xAt(i)},${yAt(v).toFixed(1)}`).join(" ");
   const ptsB = weeksB.map((v, i) => `${xAt(i)},${yAt(v).toFixed(1)}`).join(" ");
 
+  const [cmpHover, setCmpHover] = useState<number | null>(null);
+
   return (
     <>
       {/* Period selector */}
