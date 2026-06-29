@@ -574,6 +574,20 @@ function SalesTab({ year, month, product, store }: { year: Year; month: Month; p
             })()}
           </svg>
         </div>
+
+        {/* Cross-sell banner */}
+        <div className="cross-sell-banner">
+          <div className="cross-sell-text">
+            <p className="cross-sell-title">Turn your sales data into more customers</p>
+            <p className="cross-sell-body">
+              You processed {data.total} via Pluxee this year. Merchants using Pluxee Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
+            </p>
+          </div>
+          <button type="button" className="cross-sell-cta">
+            Create my ad or promotion
+            <i className="ti ti-arrow-right" />
+          </button>
+        </div>
       </div>
 
 
@@ -2596,6 +2610,14 @@ const CSS = `
 .discover-cta { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--navy); border: none; border-radius: 999px; font-family: var(--font); font-size: 13px; font-weight: 500; color: var(--white); cursor: pointer; text-decoration: none; margin-top: 18px; }
 .discover-cta:hover { background: #2A2F55; }
 .discover-cta i { font-size: 14px; }
+
+.cross-sell-banner { display: flex; align-items: center; justify-content: space-between; gap: 16px; background: #F4F6FB; border: 0.5px solid rgba(26,29,59,0.12); border-radius: var(--radius-md); padding: 14px 18px; margin-top: 18px; }
+.cross-sell-text { flex: 1; }
+.cross-sell-title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); margin: 0 0 4px; }
+.cross-sell-body { font-size: 11.5px; color: var(--text-secondary); line-height: 1.5; margin: 0; }
+.cross-sell-cta { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; background: var(--navy); border: none; border-radius: 999px; font-family: var(--font); font-size: 11.5px; font-weight: 500; color: var(--white); cursor: pointer; text-decoration: none; white-space: nowrap; flex-shrink: 0; }
+.cross-sell-cta:hover { background: #2A2F55; }
+.cross-sell-cta i { font-size: 14px; }
 `;
 
 function HomeTab({ onViewDashboard, onOpenForecast, onDiscoverSegments }: { onViewDashboard: () => void; onOpenForecast: () => void; onDiscoverSegments: () => void }) {
