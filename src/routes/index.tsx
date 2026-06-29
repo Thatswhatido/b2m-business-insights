@@ -464,7 +464,7 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
       {/* Sales over time */}
       <div className="section">
         <div className="section-title">
-          Pluxee sales over time
+          Codename sales over time
           <InfoTip text="This shows the total sales made with Pluxee products for the period you have selected. The chart helps you see how your performance evolves. You can use the filter at the top to focus on a specific product or period." />
         </div>
         <div className="section-big-number">{fmtEUR(data.total)}</div>
@@ -579,7 +579,7 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
           <div className="cross-sell-text">
             <p className="cross-sell-title">Turn your sales data into more customers</p>
             <p className="cross-sell-body">
-              You processed {fmtEUR(data.total)} via Pluxee this year. Merchants using Pluxee Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
+              You processed {fmtEUR(data.total)} via Codename this year. Merchants using Codename Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
             </p>
           </div>
           <button type="button" className="cross-sell-cta">
@@ -887,7 +887,7 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
           <div className="cross-sell-text">
             <p className="cross-sell-title">Turn your sales data into more customers</p>
             <p className="cross-sell-body">
-              You processed {fmtEUR(totalMine)} via Pluxee this year. Merchants using Pluxee Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
+              You processed {fmtEUR(totalMine)} via Codename this year. Merchants using Codename Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
             </p>
           </div>
           <button type="button" className="cross-sell-cta">
