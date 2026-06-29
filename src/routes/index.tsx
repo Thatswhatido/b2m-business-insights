@@ -83,7 +83,7 @@ function Dropdown<T extends string>({
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Pluxee SmartView – Business Insights" },
+      { title: "Dashboard – Business Insights" },
       { name: "description", content: "Pluxee merchant analytics dashboard." },
     ],
   }),
@@ -104,10 +104,7 @@ type TabId = (typeof TABS)[number]["id"];
 
 const STORES = ["All stores", "Center", "Issy", "Blanche"] as const;
 const YEARS = ["2023", "2024", "2025", "2026"] as const;
-const MONTHS = [
-  "All months",
-  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul",
-] as const;
+const MONTHS = ["All months", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul"] as const;
 const PRODUCTS = ["All products", "Lunch", "Eco"] as const;
 
 type Year = (typeof YEARS)[number];
@@ -117,7 +114,7 @@ type Store = (typeof STORES)[number];
 const STORE_WEIGHTS: Record<Store, number> = {
   "All stores": 1,
   Center: 0.45,
-  Issy: 0.30,
+  Issy: 0.3,
   Blanche: 0.25,
 };
 
@@ -191,135 +188,136 @@ function Dashboard() {
         <main className="main">
           {view === "home" ? (
             <HomeTab
-              onViewDashboard={() => { setView("insights"); setTab("sales"); }}
-              onOpenForecast={() => { setView("insights"); setTab("forecast"); }}
+              onViewDashboard={() => {
+                setView("insights");
+                setTab("sales");
+              }}
+              onOpenForecast={() => {
+                setView("insights");
+                setTab("forecast");
+              }}
             />
-
           ) : (
-          <>
-
-          <div className="page-header">
-            <h1 className="page-title">Business insights</h1>
-            <div className="store-select-wrap" ref={storeRef}>
-              <div
-                className="store-select"
-                onClick={() => { if (tab !== "sector") setStoreOpen((v) => !v); }}
-                role="button"
-                tabIndex={tab === "sector" ? -1 : 0}
-                aria-disabled={tab === "sector"}
-                style={tab === "sector" ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
-              >
-                <span>{store}</span>
-                <i
-                  className="ti ti-chevron-down"
-                  style={{ fontSize: 14, color: "var(--text-tertiary)" }}
-                />
-              </div>
-              {storeOpen && tab !== "sector" && (
-                <div className="store-menu">
-                  {STORES.map((s) => (
-                    <div
-                      key={s}
-                      className={`store-menu-item${s === store ? " active" : ""}`}
-                      onClick={() => {
-                        setStore(s);
-                        setStoreOpen(false);
-                      }}
-                    >
-                      {s}
+            <>
+              <div className="page-header">
+                <h1 className="page-title">Business insights</h1>
+                <div className="store-select-wrap" ref={storeRef}>
+                  <div
+                    className="store-select"
+                    onClick={() => {
+                      if (tab !== "sector") setStoreOpen((v) => !v);
+                    }}
+                    role="button"
+                    tabIndex={tab === "sector" ? -1 : 0}
+                    aria-disabled={tab === "sector"}
+                    style={tab === "sector" ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
+                  >
+                    <span>{store}</span>
+                    <i className="ti ti-chevron-down" style={{ fontSize: 14, color: "var(--text-tertiary)" }} />
+                  </div>
+                  {storeOpen && tab !== "sector" && (
+                    <div className="store-menu">
+                      {STORES.map((s) => (
+                        <div
+                          key={s}
+                          className={`store-menu-item${s === store ? " active" : ""}`}
+                          onClick={() => {
+                            setStore(s);
+                            setStoreOpen(false);
+                          }}
+                        >
+                          {s}
+                        </div>
+                      ))}
                     </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Tabs */}
+              <div className="tabs-row">
+                <div className="tabs">
+                  {TABS.map((t) => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      className={`tab ${tab === t.id ? "active" : ""}`}
+                      onClick={() => setTab(t.id)}
+                    >
+                      <i className={`ti ${t.icon}`} />
+                      {t.label}
+                    </button>
                   ))}
                 </div>
-              )}
-            </div>
-          </div>
+              </div>
 
-          {/* Tabs */}
-          <div className="tabs-row">
-            <div className="tabs">
-              {TABS.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={`tab ${tab === t.id ? "active" : ""}`}
-                  onClick={() => setTab(t.id)}
-                >
-                  <i className={`ti ${t.icon}`} />
-                  {t.label}
-                </button>
-              ))}
-            </div>
-            
-          </div>
-
-          {tab !== "comparison" && tab !== "reports" && (
-            <div className="filter-row">
-              <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
-              <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
-              {tab !== "sector" && tab !== "forecast" && tab !== "segments" && (
-                <div className="filter-right">
-                  <Dropdown
-                    value={product}
-                    options={PRODUCTS}
-                    onChange={setProduct}
-                    className="product-select"
-                    menuAlign="right"
-                  />
+              {tab !== "comparison" && tab !== "reports" && (
+                <div className="filter-row">
+                  <Dropdown value={year} options={YEARS} onChange={setYear} icon="ti-calendar" />
+                  <Dropdown value={month} options={MONTHS} onChange={setMonth} icon="ti-calendar" />
+                  {tab !== "sector" && tab !== "forecast" && tab !== "segments" && (
+                    <div className="filter-right">
+                      <Dropdown
+                        value={product}
+                        options={PRODUCTS}
+                        onChange={setProduct}
+                        className="product-select"
+                        menuAlign="right"
+                      />
+                    </div>
+                  )}
                 </div>
               )}
-            </div>
-          )}
 
-
-          {tab === "sales" ? (
-            <SalesTab year={year} month={month} product={product} store={store} onDiscoverSegments={() => { setView("insights"); setTab("segments"); }} />
-          ) : tab === "benchmark" ? (
-            <BenchmarkTab year={year} month={month} product={product} store={store} />
-          ) : tab === "sector" ? (
-            <SectorHealthTab year={year} month={month} product={product} />
-          ) : tab === "forecast" ? (
-            <ForecastTab year={year} month={month} store={store} />
-          ) : tab === "comparison" ? (
-            <ComparisonTab year={year} month={month} store={store} />
-          ) : tab === "segments" ? (
-            <SegmentsTab year={year} month={month} store={store} />
-          ) : tab === "reports" ? (
-            <ReportsTab store={store} />
-          ) : (
-            <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
-              <div className="section-title" style={{ justifyContent: "center" }}>
-                {TABS.find((t) => t.id === tab)?.label}
-                <i className="ti ti-info-circle info" />
-              </div>
-              <p
-                style={{
-                  marginTop: 8,
-                  fontSize: 13,
-                  color: "var(--text-secondary)",
-                }}
-              >
-                Coming next — upload the HTML for this tab.
-              </p>
-            </div>
-          )}
-          </>
+              {tab === "sales" ? (
+                <SalesTab
+                  year={year}
+                  month={month}
+                  product={product}
+                  store={store}
+                  onDiscoverSegments={() => {
+                    setView("insights");
+                    setTab("segments");
+                  }}
+                />
+              ) : tab === "benchmark" ? (
+                <BenchmarkTab year={year} month={month} product={product} store={store} />
+              ) : tab === "sector" ? (
+                <SectorHealthTab year={year} month={month} product={product} />
+              ) : tab === "forecast" ? (
+                <ForecastTab year={year} month={month} store={store} />
+              ) : tab === "comparison" ? (
+                <ComparisonTab year={year} month={month} store={store} />
+              ) : tab === "segments" ? (
+                <SegmentsTab year={year} month={month} store={store} />
+              ) : tab === "reports" ? (
+                <ReportsTab store={store} />
+              ) : (
+                <div className="section" style={{ padding: "48px 24px", textAlign: "center" }}>
+                  <div className="section-title" style={{ justifyContent: "center" }}>
+                    {TABS.find((t) => t.id === tab)?.label}
+                    <i className="ti ti-info-circle info" />
+                  </div>
+                  <p
+                    style={{
+                      marginTop: 8,
+                      fontSize: 13,
+                      color: "var(--text-secondary)",
+                    }}
+                  >
+                    Coming next — upload the HTML for this tab.
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </main>
-
       </div>
     </div>
   );
 }
 
-function SideItem({
-  icon,
-  label,
-  active,
-}: {
-  icon: string;
-  label: string;
-  active?: boolean;
-}) {
+function SideItem({ icon, label, active }: { icon: string; label: string; active?: boolean }) {
   return (
     <div className={`sidebar-item${active ? " active" : ""}`}>
       <i className={`ti ${icon}`} />
@@ -345,7 +343,7 @@ function hash(s: string) {
     h ^= s.charCodeAt(i);
     h = Math.imul(h, 16777619);
   }
-  return (h >>> 0);
+  return h >>> 0;
 }
 function rand(seed: number, i: number) {
   const x = Math.sin(seed + i * 9301) * 10000;
@@ -358,10 +356,7 @@ function fmtEUR(n: number) {
 function buildData(year: Year, month: Month, product: Product, store: Store) {
   const seed = hash(`${year}|${month}|${product}|${store}`);
   const yearMult = year === "2023" ? 0.55 : year === "2024" ? 0.7 : year === "2025" ? 0.85 : 1;
-  const productMult =
-    product === "All products" ? 1
-    : product === "Lunch" ? 0.7
-    : 0.3;
+  const productMult = product === "All products" ? 1 : product === "Lunch" ? 0.7 : 0.3;
   const storeMult = STORE_WEIGHTS[store];
 
   const yearNum = parseInt(year, 10);
@@ -383,9 +378,7 @@ function buildData(year: Year, month: Month, product: Product, store: Store) {
     mode = "daily";
     const monthIdx = MONTH_LABELS.indexOf(month as (typeof MONTH_LABELS)[number]);
     const total = daysInMonth(yearNum, monthIdx);
-    const lastDay = isCurrentYear && monthIdx === TODAY_MONTH_IDX
-      ? Math.max(0, TODAY_DAY - 1)
-      : total;
+    const lastDay = isCurrentYear && monthIdx === TODAY_MONTH_IDX ? Math.max(0, TODAY_DAY - 1) : total;
     bars = Array.from({ length: lastDay }, (_, i) => {
       const v = 20 + rand(seed, i + 1) * 60;
       return { label: String(i + 1), value: Math.round(v * yearMult * productMult * storeMult) };
@@ -393,9 +386,7 @@ function buildData(year: Year, month: Month, product: Product, store: Store) {
   }
   const total = bars.reduce((s, b) => s + b.value, 0);
 
-  const employerPool = [
-    "FNAC", "Proximus", "BNP", "Carrefour", "Orange", "Engie", "Decathlon", "Total", "L'Oréal",
-  ];
+  const employerPool = ["FNAC", "Proximus", "BNP", "Carrefour", "Orange", "Engie", "Decathlon", "Total", "L'Oréal"];
   const employers = [0, 1, 2].map((i) => {
     const name = employerPool[Math.floor(rand(seed, 50 + i) * employerPool.length)];
     const clients = Math.max(1, Math.round((8 + Math.floor(rand(seed, 60 + i) * 25)) * storeMult));
@@ -437,7 +428,19 @@ function buildData(year: Year, month: Month, product: Product, store: Store) {
   };
 }
 
-function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Year; month: Month; product: Product; store: Store; onDiscoverSegments: () => void }) {
+function SalesTab({
+  year,
+  month,
+  product,
+  store,
+  onDiscoverSegments,
+}: {
+  year: Year;
+  month: Month;
+  product: Product;
+  store: Store;
+  onDiscoverSegments: () => void;
+}) {
   const data = buildData(year, month, product, store);
   const [hover, setHover] = useState<number | null>(null);
   const bars = data.bars;
@@ -456,8 +459,7 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
   const ticks = [max, max * 0.66, max * 0.33, 0];
 
   // For daily mode, sample label every Nth bar to avoid crowding.
-  const labelStride =
-    data.mode === "monthly" ? 1 : n <= 16 ? 1 : n <= 24 ? 3 : 5;
+  const labelStride = data.mode === "monthly" ? 1 : n <= 16 ? 1 : n <= 24 ? 3 : 5;
 
   return (
     <>
@@ -500,14 +502,7 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
               const isHover = hover === i;
               return (
                 <g key={b.label + i}>
-                  <rect
-                    x={x}
-                    y={y}
-                    width={barW}
-                    height={h}
-                    rx={3}
-                    fill={isHover ? "#C7EBF7" : "var(--navy)"}
-                  />
+                  <rect x={x} y={y} width={barW} height={h} rx={3} fill={isHover ? "#C7EBF7" : "var(--navy)"} />
                   {/* invisible wider hit area for hover */}
                   <rect
                     x={left + slot * i}
@@ -526,51 +521,53 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
                   <text key={b.label + i} x={left + slot * i + slot / 2} y={178}>
                     {b.label}
                   </text>
-                ) : null
+                ) : null,
               )}
             </g>
-            {hover !== null && bars[hover] && (() => {
-              const b = bars[hover];
-              const h = (b.value / max) * usableH;
-              const cx = left + slot * hover + slot / 2;
-              const label = data.mode === "daily" ? `${b.label} — ${fmtEUR(b.value)}` : fmtEUR(b.value);
-              const th = 26;
-              const padX = 12;
-              const tw = Math.max(70, label.length * 6.8 + padX * 2);
-              const tipH = 6; // triangle pointer height
-              const barTopY = baseY - h;
-              const ty = Math.max(2, barTopY - tipH - th - 4);
-              const tx = Math.min(Math.max(cx - tw / 2, 2), chartW - tw - 2);
-              const triBaseY = ty + th;
-              const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
-              return (
-                <g pointerEvents="none">
-                  {/* shadow */}
-                  <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
-                  <polygon
-                    points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
-                    fill="rgba(26,31,60,0.18)"
-                  />
-                  {/* tooltip body */}
-                  <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
-                  <polygon
-                    points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
-                    fill="var(--navy)"
-                  />
-                  <text
-                    x={tx + tw / 2}
-                    y={ty + th / 2 + 5}
-                    fontSize="13"
-                    fontWeight="700"
-                    fill="#FFFFFF"
-                    fontFamily="Inter, sans-serif"
-                    textAnchor="middle"
-                  >
-                    {label}
-                  </text>
-                </g>
-              );
-            })()}
+            {hover !== null &&
+              bars[hover] &&
+              (() => {
+                const b = bars[hover];
+                const h = (b.value / max) * usableH;
+                const cx = left + slot * hover + slot / 2;
+                const label = data.mode === "daily" ? `${b.label} — ${fmtEUR(b.value)}` : fmtEUR(b.value);
+                const th = 26;
+                const padX = 12;
+                const tw = Math.max(70, label.length * 6.8 + padX * 2);
+                const tipH = 6; // triangle pointer height
+                const barTopY = baseY - h;
+                const ty = Math.max(2, barTopY - tipH - th - 4);
+                const tx = Math.min(Math.max(cx - tw / 2, 2), chartW - tw - 2);
+                const triBaseY = ty + th;
+                const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
+                return (
+                  <g pointerEvents="none">
+                    {/* shadow */}
+                    <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
+                    <polygon
+                      points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
+                      fill="rgba(26,31,60,0.18)"
+                    />
+                    {/* tooltip body */}
+                    <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
+                    <polygon
+                      points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
+                      fill="var(--navy)"
+                    />
+                    <text
+                      x={tx + tw / 2}
+                      y={ty + th / 2 + 5}
+                      fontSize="13"
+                      fontWeight="700"
+                      fill="#FFFFFF"
+                      fontFamily="Inter, sans-serif"
+                      textAnchor="middle"
+                    >
+                      {label}
+                    </text>
+                  </g>
+                );
+              })()}
           </svg>
         </div>
 
@@ -579,7 +576,8 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
           <div className="cross-sell-text">
             <p className="cross-sell-title">Turn your sales data into more customers</p>
             <p className="cross-sell-body">
-              You processed {fmtEUR(data.total)} via Codename this year. Merchants using Codename Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
+              You processed {fmtEUR(data.total)} via Codename this year. Merchants using Codename Ads report an average
+              uplift of 10% in monthly transactions. Set up your first ad in minutes.
             </p>
           </div>
           <button type="button" className="cross-sell-cta">
@@ -588,7 +586,6 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
           </button>
         </div>
       </div>
-
 
       {/* Top employer clients */}
       <div className="section">
@@ -708,9 +705,7 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
     mode = "daily";
     const monthIdx = MONTH_LABELS.indexOf(month as (typeof MONTH_LABELS)[number]);
     const total = daysInMonth(yearNum, monthIdx);
-    const lastDay = isCurrentYear && monthIdx === TODAY_MONTH_IDX
-      ? Math.max(0, TODAY_DAY - 1)
-      : total;
+    const lastDay = isCurrentYear && monthIdx === TODAY_MONTH_IDX ? Math.max(0, TODAY_DAY - 1) : total;
     pairs = Array.from({ length: lastDay }, (_, i) => {
       const mine = Math.round((20 + rand(seed, i + 1) * 60) * yearMult * productMult * storeMult);
       const peerBase = Math.round((20 + rand(seed, i + 1) * 60) * yearMult * productMult);
@@ -751,8 +746,10 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
       return { cls: cls as "up" | "down" | "flat", label: `${d >= 0 ? "↗" : "↘"} ${Math.abs(d).toFixed(0)}%` };
     };
     return {
-      mine: `${mine}${suffix}`, peer: `${peer}${suffix}`,
-      dMine: fmt(dMine), dPeer: fmt(dPeer),
+      mine: `${mine}${suffix}`,
+      peer: `${peer}${suffix}`,
+      dMine: fmt(dMine),
+      dPeer: fmt(dPeer),
     };
   };
   const newC = mkKpi(1, 45, 38);
@@ -765,11 +762,19 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
         <div className="section-title" style={{ justifyContent: "space-between" }}>
           <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
             Revenue vs peers
-            <InfoTip text={`Benchmark based on ${peersCount} peers within a 2 km radius and the same average basket bracket. Bars compare your revenue to the peer average so you can see how you trend against similar stores.`} />
+            <InfoTip
+              text={`Benchmark based on ${peersCount} peers within a 2 km radius and the same average basket bracket. Bars compare your revenue to the peer average so you can see how you trend against similar stores.`}
+            />
           </span>
           <span className="bench-legend">
-            <span><span className="legend-dot" style={{ background: "var(--navy)" }} />Your store</span>
-            <span><span className="legend-dot" style={{ background: "var(--green)" }} />Peers (avg)</span>
+            <span>
+              <span className="legend-dot" style={{ background: "var(--navy)" }} />
+              Your store
+            </span>
+            <span>
+              <span className="legend-dot" style={{ background: "var(--green)" }} />
+              Peers (avg)
+            </span>
           </span>
         </div>
         <div className="section-subtle">{peersCount} peers · 2 km radius · same avg basket bracket</div>
@@ -801,7 +806,11 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
             <g fontSize="9.5" fill="#9B9A95" fontFamily="Inter, sans-serif" textAnchor="end">
               {ticks.map((t, i) => {
                 const y = topY + (usableH * i) / 3 + 4;
-                return <text key={i} x={40} y={y}>{Math.round(t).toLocaleString()}</text>;
+                return (
+                  <text key={i} x={40} y={y}>
+                    {Math.round(t).toLocaleString()}
+                  </text>
+                );
               })}
             </g>
             {pairs.map((p, i) => {
@@ -813,10 +822,23 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
               const isHover = hover === i;
               return (
                 <g key={p.label + i}>
-                  <rect x={xMine} y={baseY - hMine} width={barW} height={hMine} rx={3}
-                    fill={isHover ? "#C7EBF7" : "var(--navy)"} />
-                  <rect x={xPeer} y={baseY - hPeer} width={barW} height={hPeer} rx={3}
-                    fill={isHover ? "#A8E8B8" : "var(--green)"} opacity={isHover ? 1 : 0.85} />
+                  <rect
+                    x={xMine}
+                    y={baseY - hMine}
+                    width={barW}
+                    height={hMine}
+                    rx={3}
+                    fill={isHover ? "#C7EBF7" : "var(--navy)"}
+                  />
+                  <rect
+                    x={xPeer}
+                    y={baseY - hPeer}
+                    width={barW}
+                    height={hPeer}
+                    rx={3}
+                    fill={isHover ? "#A8E8B8" : "var(--green)"}
+                    opacity={isHover ? 1 : 0.85}
+                  />
                   {/* invisible hit area */}
                   <rect
                     x={left + slot * i}
@@ -832,53 +854,80 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
             <g fontSize="10" fill="#5F5E5A" fontFamily="Inter, sans-serif" textAnchor="middle">
               {pairs.map((p, i) =>
                 i % labelStride === 0 ? (
-                  <text key={p.label + i} x={left + slot * i + slot / 2} y={190}>{p.label}</text>
-                ) : null
+                  <text key={p.label + i} x={left + slot * i + slot / 2} y={190}>
+                    {p.label}
+                  </text>
+                ) : null,
               )}
             </g>
-            {hover !== null && pairs[hover] && (() => {
-              const p = pairs[hover];
-              const hMine = (p.mine / max) * usableH;
-              const hPeer = (p.peers / max) * usableH;
-              const cx = left + slot * hover + slot / 2;
-              const labelPrefix = mode === "daily" ? `${p.label} — ` : "";
-              const line1 = `You ${fmtEUR(p.mine)}`;
-              const line2 = `Peers ${fmtEUR(p.peers)}`;
-              const headLen = labelPrefix.length;
-              const tw = Math.max(120, (Math.max(line1.length, line2.length) + headLen) * 6.6 + 24);
-              const th = mode === "daily" ? 56 : 44;
-              const tipH = 6;
-              const topBar = baseY - Math.max(hMine, hPeer);
-              const ty = Math.max(2, topBar - tipH - th - 4);
-              const tx = Math.min(Math.max(cx - tw / 2, 2), chartW - tw - 2);
-              const triBaseY = ty + th;
-              const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
-              return (
-                <g pointerEvents="none">
-                  <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
-                  <polygon
-                    points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
-                    fill="rgba(26,31,60,0.18)"
-                  />
-                  <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
-                  <polygon
-                    points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
-                    fill="var(--navy)"
-                  />
-                  {mode === "daily" && (
-                    <text x={tx + 12} y={ty + 16} fontSize="11" fontWeight="500" fill="#C7EBF7" fontFamily="Inter, sans-serif">
-                      {p.label}
+            {hover !== null &&
+              pairs[hover] &&
+              (() => {
+                const p = pairs[hover];
+                const hMine = (p.mine / max) * usableH;
+                const hPeer = (p.peers / max) * usableH;
+                const cx = left + slot * hover + slot / 2;
+                const labelPrefix = mode === "daily" ? `${p.label} — ` : "";
+                const line1 = `You ${fmtEUR(p.mine)}`;
+                const line2 = `Peers ${fmtEUR(p.peers)}`;
+                const headLen = labelPrefix.length;
+                const tw = Math.max(120, (Math.max(line1.length, line2.length) + headLen) * 6.6 + 24);
+                const th = mode === "daily" ? 56 : 44;
+                const tipH = 6;
+                const topBar = baseY - Math.max(hMine, hPeer);
+                const ty = Math.max(2, topBar - tipH - th - 4);
+                const tx = Math.min(Math.max(cx - tw / 2, 2), chartW - tw - 2);
+                const triBaseY = ty + th;
+                const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
+                return (
+                  <g pointerEvents="none">
+                    <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
+                    <polygon
+                      points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
+                      fill="rgba(26,31,60,0.18)"
+                    />
+                    <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
+                    <polygon
+                      points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
+                      fill="var(--navy)"
+                    />
+                    {mode === "daily" && (
+                      <text
+                        x={tx + 12}
+                        y={ty + 16}
+                        fontSize="11"
+                        fontWeight="500"
+                        fill="#C7EBF7"
+                        fontFamily="Inter, sans-serif"
+                      >
+                        {p.label}
+                      </text>
+                    )}
+                    <text
+                      x={tx + 12}
+                      y={ty + (mode === "daily" ? 32 : 18)}
+                      fontSize="12"
+                      fontWeight="600"
+                      fill="#FFFFFF"
+                      fontFamily="Inter, sans-serif"
+                    >
+                      <tspan fill="#C7EBF7">You </tspan>
+                      {fmtEUR(p.mine)}
                     </text>
-                  )}
-                  <text x={tx + 12} y={ty + (mode === "daily" ? 32 : 18)} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
-                    <tspan fill="#C7EBF7">You </tspan>{fmtEUR(p.mine)}
-                  </text>
-                  <text x={tx + 12} y={ty + (mode === "daily" ? 48 : 34)} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
-                    <tspan fill="#A8E8B8">Peers </tspan>{fmtEUR(p.peers)}
-                  </text>
-                </g>
-              );
-            })()}
+                    <text
+                      x={tx + 12}
+                      y={ty + (mode === "daily" ? 48 : 34)}
+                      fontSize="12"
+                      fontWeight="600"
+                      fill="#FFFFFF"
+                      fontFamily="Inter, sans-serif"
+                    >
+                      <tspan fill="#A8E8B8">Peers </tspan>
+                      {fmtEUR(p.peers)}
+                    </text>
+                  </g>
+                );
+              })()}
           </svg>
         </div>
 
@@ -887,7 +936,8 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
           <div className="cross-sell-text">
             <p className="cross-sell-title">Turn your sales data into more customers</p>
             <p className="cross-sell-body">
-              You processed {fmtEUR(totalMine)} via Codename this year. Merchants using Codename Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
+              You processed {fmtEUR(totalMine)} via Codename this year. Merchants using Codename Ads report an average
+              uplift of 10% in monthly transactions. Set up your first ad in minutes.
             </p>
           </div>
           <button type="button" className="cross-sell-cta">
@@ -899,8 +949,20 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
 
       <div className="bench-kpi-grid">
         <BenchKpi label="New clients" mine={newC.mine} peer={newC.peer} dMine={newC.dMine} dPeer={newC.dPeer} />
-        <BenchKpi label="Known clients" mine={knownC.mine} peer={knownC.peer} dMine={knownC.dMine} dPeer={knownC.dPeer} />
-        <BenchKpi label="Average basket" mine={basket.mine} peer={basket.peer} dMine={basket.dMine} dPeer={basket.dPeer} />
+        <BenchKpi
+          label="Known clients"
+          mine={knownC.mine}
+          peer={knownC.peer}
+          dMine={knownC.dMine}
+          dPeer={knownC.dPeer}
+        />
+        <BenchKpi
+          label="Average basket"
+          mine={basket.mine}
+          peer={basket.peer}
+          dMine={basket.dMine}
+          dPeer={basket.dPeer}
+        />
       </div>
 
       <div className="info-banner">
@@ -912,10 +974,15 @@ function BenchmarkTab({ year, month, product, store }: { year: Year; month: Mont
 }
 
 function BenchKpi({
-  label, mine, peer, dMine, dPeer,
+  label,
+  mine,
+  peer,
+  dMine,
+  dPeer,
 }: {
   label: string;
-  mine: string; peer: string;
+  mine: string;
+  peer: string;
   dMine: { cls: "up" | "down" | "flat"; label: string };
   dPeer: { cls: "up" | "down" | "flat"; label: string };
 }) {
@@ -1003,7 +1070,9 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
     <>
       {/* Sector contraction banner */}
       <div className="sector-banner danger">
-        <div className="sector-banner-icon"><i className="ti ti-trending-down" /></div>
+        <div className="sector-banner-icon">
+          <i className="ti ti-trending-down" />
+        </div>
         <div className="sector-banner-body">
           <div className="sector-banner-title">
             Restaurant voucher volume in Brussels is down {Math.abs(sectorChange)}% this quarter
@@ -1024,25 +1093,33 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
           <div className="bench-kpi-label">Your volume change</div>
           <div className="bench-kpi-value">{sign(yourChange)}</div>
           <div className="bench-kpi-caption">vs last quarter</div>
-          <div className="delta up" style={{ marginTop: 6 }}>Outperforming sector by {gapPts} pts</div>
+          <div className="delta up" style={{ marginTop: 6 }}>
+            Outperforming sector by {gapPts} pts
+          </div>
         </div>
         <div className="section sector-kpi">
           <div className="bench-kpi-label">Your volume rank</div>
           <div className="bench-kpi-value">Top {rank}%</div>
           <div className="bench-kpi-caption">Brussels restaurants</div>
-          <div className="delta up" style={{ marginTop: 6 }}>↗ Up {rankMoved} places</div>
+          <div className="delta up" style={{ marginTop: 6 }}>
+            ↗ Up {rankMoved} places
+          </div>
         </div>
         <div className="section sector-kpi">
           <div className="bench-kpi-label">Active merchants</div>
           <div className="bench-kpi-value">{merchants.toLocaleString("fr-FR")}</div>
           <div className="bench-kpi-caption">In your sector</div>
-          <div className="delta down" style={{ marginTop: 6 }}>↘ {merchantsChange}% vs prev. quarter</div>
+          <div className="delta down" style={{ marginTop: 6 }}>
+            ↘ {merchantsChange}% vs prev. quarter
+          </div>
         </div>
         <div className="section sector-kpi">
           <div className="bench-kpi-label">Sector avg basket</div>
           <div className="bench-kpi-value">{avgBasket} EUR</div>
           <div className="bench-kpi-caption">Brussels restaurants</div>
-          <div className="delta up" style={{ marginTop: 6 }}>↗ +{basketChange}%</div>
+          <div className="delta up" style={{ marginTop: 6 }}>
+            ↗ +{basketChange}%
+          </div>
         </div>
       </div>
 
@@ -1054,14 +1131,26 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
             <InfoTip text="4 quarters rolling. Compares your store's volume index against the sector average for Brussels restaurants. Baseline = 100." />
           </span>
           <span className="bench-legend">
-            <span><span className="legend-dot" style={{ background: "var(--navy)" }} />Your store</span>
-            <span><span className="legend-dot legend-dot-dashed" />Sector avg</span>
+            <span>
+              <span className="legend-dot" style={{ background: "var(--navy)" }} />
+              Your store
+            </span>
+            <span>
+              <span className="legend-dot legend-dot-dashed" />
+              Sector avg
+            </span>
           </span>
         </div>
         <div className="section-subtle">Your store vs sector average · 4 quarters rolling</div>
 
         <div className="chart-area" style={{ marginTop: 12 }}>
-          <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: 220 }} role="img" aria-label="Voucher volume trend" onMouseLeave={() => setHover(null)}>
+          <svg
+            viewBox={`0 0 ${chartW} ${chartH}`}
+            style={{ width: "100%", height: 220 }}
+            role="img"
+            aria-label="Voucher volume trend"
+            onMouseLeave={() => setHover(null)}
+          >
             <g stroke="rgba(26,31,60,0.08)" strokeWidth="0.5">
               {ticks.map((_, i) => {
                 const y = topY + (usableH * i) / 3;
@@ -1071,7 +1160,11 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
             <g fontSize="9.5" fill="#9B9A95" fontFamily="Inter, sans-serif" textAnchor="end">
               {ticks.map((t, i) => {
                 const y = topY + (usableH * i) / 3 + 4;
-                return <text key={i} x={40} y={y}>{Math.round(t)}</text>;
+                return (
+                  <text key={i} x={40} y={y}>
+                    {Math.round(t)}
+                  </text>
+                );
               })}
             </g>
 
@@ -1089,7 +1182,9 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
 
             <g fontSize="10" fill="#5F5E5A" fontFamily="Inter, sans-serif" textAnchor="middle">
               {trend.map((t, i) => (
-                <text key={t.label} x={xAt(i)} y={baseY + 22}>{t.label}</text>
+                <text key={t.label} x={xAt(i)} y={baseY + 22}>
+                  {t.label}
+                </text>
               ))}
             </g>
 
@@ -1112,42 +1207,60 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
             })}
 
             {/* Hover tooltip */}
-            {hover !== null && trend[hover] && (() => {
-              const t = trend[hover];
-              const cx = xAt(hover);
-              const yMine = yAt(t.mine);
-              const ySector = yAt(t.sector);
-              const topPt = Math.min(yMine, ySector);
-              const line1 = `You ${t.mine}`;
-              const line2 = `Sector ${t.sector}`;
-              const tw = Math.max(110, (Math.max(line1.length, line2.length)) * 7 + 24);
-              const th = 44;
-              const tipH = 6;
-              const ty = Math.max(2, topPt - tipH - th - 4);
-              const tx = Math.min(Math.max(cx - tw / 2, 2), chartW - tw - 2);
-              const triBaseY = ty + th;
-              const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
-              return (
-                <g pointerEvents="none">
-                  <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
-                  <polygon
-                    points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
-                    fill="rgba(26,31,60,0.18)"
-                  />
-                  <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
-                  <polygon
-                    points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
-                    fill="var(--navy)"
-                  />
-                  <text x={tx + 12} y={ty + 18} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
-                    <tspan fill="#C7EBF7">You </tspan>{t.mine}
-                  </text>
-                  <text x={tx + 12} y={ty + 34} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
-                    <tspan fill="#E8A8A8">Sector </tspan>{t.sector}
-                  </text>
-                </g>
-              );
-            })()}
+            {hover !== null &&
+              trend[hover] &&
+              (() => {
+                const t = trend[hover];
+                const cx = xAt(hover);
+                const yMine = yAt(t.mine);
+                const ySector = yAt(t.sector);
+                const topPt = Math.min(yMine, ySector);
+                const line1 = `You ${t.mine}`;
+                const line2 = `Sector ${t.sector}`;
+                const tw = Math.max(110, Math.max(line1.length, line2.length) * 7 + 24);
+                const th = 44;
+                const tipH = 6;
+                const ty = Math.max(2, topPt - tipH - th - 4);
+                const tx = Math.min(Math.max(cx - tw / 2, 2), chartW - tw - 2);
+                const triBaseY = ty + th;
+                const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
+                return (
+                  <g pointerEvents="none">
+                    <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
+                    <polygon
+                      points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
+                      fill="rgba(26,31,60,0.18)"
+                    />
+                    <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
+                    <polygon
+                      points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
+                      fill="var(--navy)"
+                    />
+                    <text
+                      x={tx + 12}
+                      y={ty + 18}
+                      fontSize="12"
+                      fontWeight="600"
+                      fill="#FFFFFF"
+                      fontFamily="Inter, sans-serif"
+                    >
+                      <tspan fill="#C7EBF7">You </tspan>
+                      {t.mine}
+                    </text>
+                    <text
+                      x={tx + 12}
+                      y={ty + 34}
+                      fontSize="12"
+                      fontWeight="600"
+                      fill="#FFFFFF"
+                      fontFamily="Inter, sans-serif"
+                    >
+                      <tspan fill="#E8A8A8">Sector </tspan>
+                      {t.sector}
+                    </text>
+                  </g>
+                );
+              })()}
 
             {/* Outperform badge near last point */}
             {(() => {
@@ -1156,12 +1269,35 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
               const y = Math.max(2, yAt(last.mine) - 44);
               return (
                 <g>
-                  <rect x={x} y={y} width={104} height={36} rx={6}
-                    fill="rgba(30,215,96,0.14)" stroke="var(--green-dark)" strokeWidth="0.5" />
-                  <text x={x + 52} y={y + 15} fontSize="10.5" fontWeight="600" fill="#176A2C" fontFamily="Inter, sans-serif" textAnchor="middle">
+                  <rect
+                    x={x}
+                    y={y}
+                    width={104}
+                    height={36}
+                    rx={6}
+                    fill="rgba(30,215,96,0.14)"
+                    stroke="var(--green-dark)"
+                    strokeWidth="0.5"
+                  />
+                  <text
+                    x={x + 52}
+                    y={y + 15}
+                    fontSize="10.5"
+                    fontWeight="600"
+                    fill="#176A2C"
+                    fontFamily="Inter, sans-serif"
+                    textAnchor="middle"
+                  >
                     You: {sign(yourChange)}
                   </text>
-                  <text x={x + 52} y={y + 28} fontSize="10" fill="#176A2C" fontFamily="Inter, sans-serif" textAnchor="middle">
+                  <text
+                    x={x + 52}
+                    y={y + 28}
+                    fontSize="10"
+                    fill="#176A2C"
+                    fontFamily="Inter, sans-serif"
+                    textAnchor="middle"
+                  >
                     Sector: {sign(sectorChange)}
                   </text>
                 </g>
@@ -1218,20 +1354,25 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
 
       {/* Insight card */}
       <div className="insight-card">
-        <div className="insight-icon"><i className="ti ti-bulb" /></div>
+        <div className="insight-icon">
+          <i className="ti ti-bulb" />
+        </div>
         <div>
           <div className="insight-title">You are outperforming your sector</div>
           <div className="insight-desc">
             While Brussels restaurants lost {Math.abs(sectorChange)}% in volume, you only changed by {sign(yourChange)}.
-            You are gaining relative share in a contracting market. Consider locking in loyal customers
-            before the sector recovers and competition tightens.
+            You are gaining relative share in a contracting market. Consider locking in loyal customers before the
+            sector recovers and competition tightens.
           </div>
         </div>
       </div>
 
       <div className="info-banner">
         <i className="ti ti-info-circle" />
-        <p>Sector data aggregated from {merchants.toLocaleString("fr-FR")} active merchants in the Brussels restaurants sector. Updated weekly.</p>
+        <p>
+          Sector data aggregated from {merchants.toLocaleString("fr-FR")} active merchants in the Brussels restaurants
+          sector. Updated weekly.
+        </p>
       </div>
     </>
   );
@@ -1353,12 +1494,7 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
           <span className="forecast-filter-label">Scenario</span>
           <div className="scenario-toggle">
             {(["Conservative", "Base", "Optimistic"] as const).map((s) => (
-              <button
-                key={s}
-                type="button"
-                className={scenario === s ? "active" : ""}
-                onClick={() => setScenario(s)}
-              >
+              <button key={s} type="button" className={scenario === s ? "active" : ""} onClick={() => setScenario(s)}>
                 {s}
               </button>
             ))}
@@ -1387,7 +1523,10 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
         <div className="kpi-card">
           <p className="kpi-label">Projected total</p>
           <p className="kpi-value">{fmt(projected)}</p>
-          <p className="kpi-caption">Next {horizonWeeks} weeks · {store}{month !== "All months" ? ` · ${month} ${year}` : ` · ${year}`}</p>
+          <p className="kpi-caption">
+            Next {horizonWeeks} weeks · {store}
+            {month !== "All months" ? ` · ${month} ${year}` : ` · ${year}`}
+          </p>
         </div>
       </div>
 
@@ -1396,13 +1535,27 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
         <div className="forecast-chart-header">
           <div>
             <p className="forecast-chart-title">Revenue projection</p>
-            <p className="forecast-chart-subtitle">Actual + {horizonWeeks}-week forecast · {scenario.toLowerCase()} scenario · {store}</p>
+            <p className="forecast-chart-subtitle">
+              Actual + {horizonWeeks}-week forecast · {scenario.toLowerCase()} scenario · {store}
+            </p>
           </div>
           <div className="forecast-legend">
-            <span><span className="legend-line" />Actual</span>
-            <span><span className="legend-line dashed" />Forecast</span>
-            <span><span className="legend-swatch" style={{ background: "rgba(79,195,217,0.25)" }} />Range</span>
-            <span><span className="legend-swatch" style={{ background: "rgba(30,215,96,0.25)" }} />Signal</span>
+            <span>
+              <span className="legend-line" />
+              Actual
+            </span>
+            <span>
+              <span className="legend-line dashed" />
+              Forecast
+            </span>
+            <span>
+              <span className="legend-swatch" style={{ background: "rgba(79,195,217,0.25)" }} />
+              Range
+            </span>
+            <span>
+              <span className="legend-swatch" style={{ background: "rgba(30,215,96,0.25)" }} />
+              Signal
+            </span>
           </div>
         </div>
 
@@ -1427,8 +1580,10 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
 
           {/* Y axis labels */}
           <g fontSize="9" fill="#8A8AAA" fontFamily="Inter,sans-serif" textAnchor="end">
-            {["€13k","€12k","€11k","€10k","€9k","€8k","€7k","€6k","€5k","€4k"].map((l, i) => (
-              <text key={l} x={40} y={22 + i * 21}>{l}</text>
+            {["€13k", "€12k", "€11k", "€10k", "€9k", "€8k", "€7k", "€6k", "€5k", "€4k"].map((l, i) => (
+              <text key={l} x={40} y={22 + i * 21}>
+                {l}
+              </text>
             ))}
           </g>
 
@@ -1440,16 +1595,38 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
           </g>
 
           {/* Signal zones */}
-          {sigGreen1 && <rect x={sigGreen1.x} y="14" width={sigGreen1.w} height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />}
-          {sigRed && <rect x={sigRed.x} y="14" width={sigRed.w} height="198" fill="url(#sigRed)" clipPath="url(#chartClip)" />}
-          {sigGreen2 && <rect x={sigGreen2.x} y="14" width={sigGreen2.w} height="198" fill="url(#sigGreen)" clipPath="url(#chartClip)" />}
+          {sigGreen1 && (
+            <rect
+              x={sigGreen1.x}
+              y="14"
+              width={sigGreen1.w}
+              height="198"
+              fill="url(#sigGreen)"
+              clipPath="url(#chartClip)"
+            />
+          )}
+          {sigRed && (
+            <rect x={sigRed.x} y="14" width={sigRed.w} height="198" fill="url(#sigRed)" clipPath="url(#chartClip)" />
+          )}
+          {sigGreen2 && (
+            <rect
+              x={sigGreen2.x}
+              y="14"
+              width={sigGreen2.w}
+              height="198"
+              fill="url(#sigGreen)"
+              clipPath="url(#chartClip)"
+            />
+          )}
 
           {/* Confidence band */}
           <path clipPath="url(#chartClip)" d={bandPath} fill="url(#bandFill)" />
 
           {/* Today line */}
           <line x1={todayX} y1="14" x2={todayX} y2="212" stroke="#1A1D3B" strokeWidth="1" strokeDasharray="4 3" />
-          <text x={todayX + 4} y="12" fontSize="9" fill="#1A1D3B" fontFamily="Inter,sans-serif" fontWeight="600">today</text>
+          <text x={todayX + 4} y="12" fontSize="9" fill="#1A1D3B" fontFamily="Inter,sans-serif" fontWeight="600">
+            today
+          </text>
 
           {/* Actual line (navy solid) */}
           <path
@@ -1474,30 +1651,47 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
             d={forecastPath}
           />
           {forecastDots.map(([x, y], i) => (
-            <rect key={`f${i}`} x={x - 4} y={y - 4} width="8" height="8" rx="2" fill="#4FC3D9" stroke="white" strokeWidth="1.5" />
+            <rect
+              key={`f${i}`}
+              x={x - 4}
+              y={y - 4}
+              width="8"
+              height="8"
+              rx="2"
+              fill="#4FC3D9"
+              stroke="white"
+              strokeWidth="1.5"
+            />
           ))}
 
           {/* X axis labels */}
           <g fontSize="9.5" fill="#4A4A6A" fontFamily="Inter,sans-serif" textAnchor="middle">
             {xLabels.map((l) => (
-              <text key={l.label} x={l.x} y="225">{l.label}</text>
+              <text key={l.label} x={l.x} y="225">
+                {l.label}
+              </text>
             ))}
           </g>
         </svg>
       </div>
 
-
-
       {/* Signals + Scenarios */}
       <div className="two-col-forecast">
         <div className="fcard">
-          <div className="fcard-title"><i className="ti ti-calendar-event" />Upcoming signals</div>
+          <div className="fcard-title">
+            <i className="ti ti-calendar-event" />
+            Upcoming signals
+          </div>
 
           <div className="signal-item">
-            <div className="signal-icon up"><i className="ti ti-trending-up" /></div>
+            <div className="signal-icon up">
+              <i className="ti ti-trending-up" />
+            </div>
             <div style={{ flex: 1 }}>
               <p className="signal-week">Wk +2 · Budget load week</p>
-              <p className="signal-desc">Top employers in your area typically load meal vouchers this week. Expect +20-30% footfall.</p>
+              <p className="signal-desc">
+                Top employers in your area typically load meal vouchers this week. Expect +20-30% footfall.
+              </p>
               <div className="signal-tags">
                 <span className="signal-tag positive">+27% historical lift</span>
                 <span className="signal-away">10 days away</span>
@@ -1506,10 +1700,14 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
           </div>
 
           <div className="signal-item">
-            <div className="signal-icon down"><i className="ti ti-trending-down" /></div>
+            <div className="signal-icon down">
+              <i className="ti ti-trending-down" />
+            </div>
             <div style={{ flex: 1 }}>
               <p className="signal-week">Wk +6 · Sector contraction</p>
-              <p className="signal-desc">Restaurant voucher volume in Brussels typically dips this period. Sector down ~9% historically.</p>
+              <p className="signal-desc">
+                Restaurant voucher volume in Brussels typically dips this period. Sector down ~9% historically.
+              </p>
               <div className="signal-tags">
                 <span className="signal-tag negative">-9% sector pattern</span>
                 <span className="signal-away">38 days away</span>
@@ -1518,7 +1716,9 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
           </div>
 
           <div className="signal-item">
-            <div className="signal-icon up"><i className="ti ti-trending-up" /></div>
+            <div className="signal-icon up">
+              <i className="ti ti-trending-up" />
+            </div>
             <div style={{ flex: 1 }}>
               <p className="signal-week">Wk +8 · End of month payroll</p>
               <p className="signal-desc">Mid-cycle voucher reload from primary employers in your catchment area.</p>
@@ -1531,19 +1731,43 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
         </div>
 
         <div className="fcard">
-          <div className="fcard-title"><i className="ti ti-adjustments-horizontal" />Scenarios</div>
+          <div className="fcard-title">
+            <i className="ti ti-adjustments-horizontal" />
+            Scenarios
+          </div>
 
-          {([
-            { name: "Conservative", color: "#D0312D", desc: "Assumes weak budget load, stronger contraction", value: "108 200 EUR" },
-            { name: "Base", color: "#1A1D3B", desc: "Based on 12 months of your trends and sector patterns", value: "120 940 EUR" },
-            { name: "Optimistic", color: "#1ED760", desc: "Strong budget load, mild contraction", value: "134 500 EUR" },
-          ] as const).map((s) => {
+          {(
+            [
+              {
+                name: "Conservative",
+                color: "#D0312D",
+                desc: "Assumes weak budget load, stronger contraction",
+                value: "108 200 EUR",
+              },
+              {
+                name: "Base",
+                color: "#1A1D3B",
+                desc: "Based on 12 months of your trends and sector patterns",
+                value: "120 940 EUR",
+              },
+              {
+                name: "Optimistic",
+                color: "#1ED760",
+                desc: "Strong budget load, mild contraction",
+                value: "134 500 EUR",
+              },
+            ] as const
+          ).map((s) => {
             const selected = scenario === s.name;
             return (
               <div
                 key={s.name}
                 className="scenario-item"
-                style={selected ? { background: "rgba(26,29,59,0.04)", margin: "0 -8px", padding: "10px 8px", borderRadius: 6 } : undefined}
+                style={
+                  selected
+                    ? { background: "rgba(26,29,59,0.04)", margin: "0 -8px", padding: "10px 8px", borderRadius: 6 }
+                    : undefined
+                }
               >
                 <div className="scenario-left">
                   <div className="scenario-dot" style={{ background: s.color }} />
@@ -1569,18 +1793,23 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
 
       {/* Insight banner */}
       <div className="insight-card">
-        <div className="insight-icon"><i className="ti ti-bulb" /></div>
+        <div className="insight-icon">
+          <i className="ti ti-bulb" />
+        </div>
         <div>
           <div className="insight-title">Plan ahead for next month</div>
           <div className="insight-desc">
-            Your peak is in 10 days (budget load week). Ensure stock and staff are ready. After that, expect a 4-week soft period before recovery. This is the right window to plan a promotion or run a campaign to smooth the trough.
+            Your peak is in 10 days (budget load week). Ensure stock and staff are ready. After that, expect a 4-week
+            soft period before recovery. This is the right window to plan a promotion or run a campaign to smooth the
+            trough.
           </div>
         </div>
       </div>
 
       <div className="footer-note">
         <i className="ti ti-info-circle" />
-        Forecast based on 12 months of your store history, Brussels restaurants sector patterns, and known employer benefit cycles. Confidence widens with horizon.
+        Forecast based on 12 months of your store history, Brussels restaurants sector patterns, and known employer
+        benefit cycles. Confidence widens with horizon.
       </div>
     </>
   );
@@ -1589,10 +1818,7 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
 // ============================================================
 // Comparison tab
 // ============================================================
-const PERIOD_OPTIONS = [
-  "Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025",
-  "Q1 2026", "Q2 2026",
-] as const;
+const PERIOD_OPTIONS = ["Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025", "Q1 2026", "Q2 2026"] as const;
 type PeriodOpt = (typeof PERIOD_OPTIONS)[number];
 
 function ComparisonTab({ year, month, store }: { year: string; month: string; store: Store }) {
@@ -1604,8 +1830,17 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
 
   const handleQuick = (q: typeof quick) => {
     setQuick(q);
-    if (q === "Last year") { setYearA("2024"); setMonthA("All months"); setYearB("2025"); setMonthB("All months"); }
-    else if (q === "Year over year") { setYearA("2025"); setMonthA("Jan"); setYearB("2026"); setMonthB("Jan"); }
+    if (q === "Last year") {
+      setYearA("2024");
+      setMonthA("All months");
+      setYearB("2025");
+      setMonthB("All months");
+    } else if (q === "Year over year") {
+      setYearA("2025");
+      setMonthA("Jan");
+      setYearB("2026");
+      setMonthB("Jan");
+    }
   };
 
   const periodA = `${monthA === "All months" ? "" : monthA + " "}${yearA}`.trim();
@@ -1654,21 +1889,60 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
         <div className="period-block period-a">
           <p className="period-label">Period A</p>
           <div style={{ display: "flex", gap: 8 }}>
-            <Dropdown value={yearA} options={YEARS} onChange={(v) => { setYearA(v as Year); setQuick("Custom"); }} icon="ti-calendar" />
-            <Dropdown value={monthA} options={MONTHS} onChange={(v) => { setMonthA(v as Month); setQuick("Custom"); }} icon="ti-calendar" />
+            <Dropdown
+              value={yearA}
+              options={YEARS}
+              onChange={(v) => {
+                setYearA(v as Year);
+                setQuick("Custom");
+              }}
+              icon="ti-calendar"
+            />
+            <Dropdown
+              value={monthA}
+              options={MONTHS}
+              onChange={(v) => {
+                setMonthA(v as Month);
+                setQuick("Custom");
+              }}
+              icon="ti-calendar"
+            />
           </div>
         </div>
         <div className="period-vs">vs</div>
         <div className="period-block period-b">
           <p className="period-label">Period B</p>
           <div style={{ display: "flex", gap: 8 }}>
-            <Dropdown value={yearB} options={YEARS} onChange={(v) => { setYearB(v as Year); setQuick("Custom"); }} icon="ti-calendar" />
-            <Dropdown value={monthB} options={MONTHS} onChange={(v) => { setMonthB(v as Month); setQuick("Custom"); }} icon="ti-calendar" />
+            <Dropdown
+              value={yearB}
+              options={YEARS}
+              onChange={(v) => {
+                setYearB(v as Year);
+                setQuick("Custom");
+              }}
+              icon="ti-calendar"
+            />
+            <Dropdown
+              value={monthB}
+              options={MONTHS}
+              onChange={(v) => {
+                setMonthB(v as Month);
+                setQuick("Custom");
+              }}
+              icon="ti-calendar"
+            />
           </div>
         </div>
         <div className="period-quick">
           {(["Last year", "Year over year", "Custom"] as const).map((q) => (
-            <button key={q} type="button" className={`quick-btn${quick === q ? " active" : ""}`} onClick={() => handleQuick(q)}>{q}</button>
+            <button
+              key={q}
+              type="button"
+              className={`quick-btn${quick === q ? " active" : ""}`}
+              onClick={() => handleQuick(q)}
+            >
+              {q}
+            </button>
           ))}
         </div>
       </div>
@@ -1688,10 +1962,11 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
         <div className={`kpi-card ${pct < 0 ? "highlight-danger" : "highlight-success"}`}>
           <p className="kpi-label">Your change</p>
           <p className={`kpi-value ${pct < 0 ? "text-danger" : "text-success"}`}>{fmtPct(pct)}</p>
-          <p className="kpi-caption">{diff > 0 ? "+" : ""}{fmtEUR(diff)}</p>
+          <p className="kpi-caption">
+            {diff > 0 ? "+" : ""}
+            {fmtEUR(diff)}
+          </p>
         </div>
-
-
       </div>
 
       {/* Weekly revenue chart */}
@@ -1702,21 +1977,42 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
             <p className="cmp-card-subtitle">Period A vs Period B</p>
           </div>
           <div className="cmp-legend">
-            <span><span className="legend-dot" style={{ background: "var(--navy)" }} />Period A</span>
-            <span><span className="legend-dot dashed" style={{ borderColor: "var(--green-dark)" }} />Period B</span>
-
+            <span>
+              <span className="legend-dot" style={{ background: "var(--navy)" }} />
+              Period A
+            </span>
+            <span>
+              <span className="legend-dot dashed" style={{ borderColor: "var(--green-dark)" }} />
+              Period B
+            </span>
           </div>
         </div>
 
-        <svg viewBox="0 0 640 220" style={{ width: "100%", height: 220 }} role="img" aria-label="Weekly revenue comparison" onMouseLeave={() => setCmpHover(null)}>
+        <svg
+          viewBox="0 0 640 220"
+          style={{ width: "100%", height: 220 }}
+          role="img"
+          aria-label="Weekly revenue comparison"
+          onMouseLeave={() => setCmpHover(null)}
+        >
           <g stroke="var(--border-light)" strokeWidth="0.5">
-            {[20, 65, 110, 155].map((y) => <line key={y} x1="40" y1={y} x2="640" y2={y} />)}
+            {[20, 65, 110, 155].map((y) => (
+              <line key={y} x1="40" y1={y} x2="640" y2={y} />
+            ))}
           </g>
           <g fontSize="9" fill="var(--text-tertiary)" fontFamily="Inter,sans-serif" textAnchor="end">
-            <text x="32" y="23">{Math.round(vMax / 1000)}k</text>
-            <text x="32" y="68">{Math.round((vMax + vMin) / 2 / 1000 + 1)}k</text>
-            <text x="32" y="113">{Math.round((vMax + vMin) / 2 / 1000)}k</text>
-            <text x="32" y="158">{Math.round(vMin / 1000)}k</text>
+            <text x="32" y="23">
+              {Math.round(vMax / 1000)}k
+            </text>
+            <text x="32" y="68">
+              {Math.round((vMax + vMin) / 2 / 1000 + 1)}k
+            </text>
+            <text x="32" y="113">
+              {Math.round((vMax + vMin) / 2 / 1000)}k
+            </text>
+            <text x="32" y="158">
+              {Math.round(vMin / 1000)}k
+            </text>
           </g>
 
           {/* Period A */}
@@ -1749,45 +2045,64 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
           })}
 
           {/* Hover tooltip */}
-          {cmpHover !== null && (() => {
-            const cx = xAt(cmpHover);
-            const yA = yAt(weeksA[cmpHover]);
-            const yB = yAt(weeksB[cmpHover]);
-            const topPt = Math.min(yA, yB);
-            const line1 = `Period A ${Math.round(weeksA[cmpHover]).toLocaleString("fr-FR")} EUR`;
-            const line2 = `Period B ${Math.round(weeksB[cmpHover]).toLocaleString("fr-FR")} EUR`;
-            const tw = Math.max(134, (Math.max(line1.length, line2.length)) * 7 + 24);
-            const th = 44;
-            const tipH = 6;
-            const ty = Math.max(2, topPt - tipH - th - 4);
-            const tx = Math.min(Math.max(cx - tw / 2, 2), 640 - tw - 2);
-            const triBaseY = ty + th;
-            const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
-            return (
-              <g pointerEvents="none">
-                <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
-                <polygon
-                  points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
-                  fill="rgba(26,31,60,0.18)"
-                />
-                <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
-                <polygon
-                  points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
-                  fill="var(--navy)"
-                />
-                <text x={tx + 12} y={ty + 18} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
-                  <tspan fill="#C7EBF7">Period A </tspan>{Math.round(weeksA[cmpHover]).toLocaleString("fr-FR")} EUR
-                </text>
-                <text x={tx + 12} y={ty + 34} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
-                  <tspan fill="#A8F0C8">Period B </tspan>{Math.round(weeksB[cmpHover]).toLocaleString("fr-FR")} EUR
-                </text>
-              </g>
-            );
-          })()}
+          {cmpHover !== null &&
+            (() => {
+              const cx = xAt(cmpHover);
+              const yA = yAt(weeksA[cmpHover]);
+              const yB = yAt(weeksB[cmpHover]);
+              const topPt = Math.min(yA, yB);
+              const line1 = `Period A ${Math.round(weeksA[cmpHover]).toLocaleString("fr-FR")} EUR`;
+              const line2 = `Period B ${Math.round(weeksB[cmpHover]).toLocaleString("fr-FR")} EUR`;
+              const tw = Math.max(134, Math.max(line1.length, line2.length) * 7 + 24);
+              const th = 44;
+              const tipH = 6;
+              const ty = Math.max(2, topPt - tipH - th - 4);
+              const tx = Math.min(Math.max(cx - tw / 2, 2), 640 - tw - 2);
+              const triBaseY = ty + th;
+              const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
+              return (
+                <g pointerEvents="none">
+                  <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
+                  <polygon
+                    points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
+                    fill="rgba(26,31,60,0.18)"
+                  />
+                  <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
+                  <polygon
+                    points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
+                    fill="var(--navy)"
+                  />
+                  <text
+                    x={tx + 12}
+                    y={ty + 18}
+                    fontSize="12"
+                    fontWeight="600"
+                    fill="#FFFFFF"
+                    fontFamily="Inter, sans-serif"
+                  >
+                    <tspan fill="#C7EBF7">Period A </tspan>
+                    {Math.round(weeksA[cmpHover]).toLocaleString("fr-FR")} EUR
+                  </text>
+                  <text
+                    x={tx + 12}
+                    y={ty + 34}
+                    fontSize="12"
+                    fontWeight="600"
+                    fill="#FFFFFF"
+                    fontFamily="Inter, sans-serif"
+                  >
+                    <tspan fill="#A8F0C8">Period B </tspan>
+                    {Math.round(weeksB[cmpHover]).toLocaleString("fr-FR")} EUR
+                  </text>
+                </g>
+              );
+            })()}
 
           <g fontSize="9.5" fill="var(--text-secondary)" fontFamily="Inter,sans-serif" textAnchor="middle">
             {["Wk 1", "Wk 2", "Wk 3", "Wk 4", "Wk 5", "Wk 6"].map((l, i) => (
-              <text key={l} x={xAt(i)} y="180">{l}</text>
+              <text key={l} x={xAt(i)} y="180">
+                {l}
+              </text>
             ))}
           </g>
         </svg>
@@ -1796,15 +2111,29 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
       {/* Metric breakdown */}
       <div className="cmp-card">
         <div className="section-title" style={{ marginBottom: 12 }}>
-          <i className="ti ti-list-numbers" />Metric breakdown
+          <i className="ti ti-list-numbers" />
+          Metric breakdown
         </div>
         <div className="cmp-metric-row cmp-metric-header">
-          <span>Metric</span><span>Period A</span><span>Period B</span><span style={{ textAlign: "right" }}>Change</span>
+          <span>Metric</span>
+          <span>Period A</span>
+          <span>Period B</span>
+          <span style={{ textAlign: "right" }}>Change</span>
         </div>
         {[
           { name: "Revenue", a: fmtEUR(revA), b: fmtEUR(revB), d: pctDelta(revA, revB) },
-          { name: "Transactions", a: txA.toLocaleString("fr-FR"), b: txB.toLocaleString("fr-FR"), d: pctDelta(txA, txB) },
-          { name: "Avg basket", a: `${basketA.toFixed(2)} EUR`, b: `${basketB.toFixed(2)} EUR`, d: pctDelta(basketA, basketB) },
+          {
+            name: "Transactions",
+            a: txA.toLocaleString("fr-FR"),
+            b: txB.toLocaleString("fr-FR"),
+            d: pctDelta(txA, txB),
+          },
+          {
+            name: "Avg basket",
+            a: `${basketA.toFixed(2)} EUR`,
+            b: `${basketB.toFixed(2)} EUR`,
+            d: pctDelta(basketA, basketB),
+          },
           { name: "New clients", a: String(newA), b: String(newB), d: pctDelta(newA, newB) },
           { name: "Known clients", a: String(knownA), b: String(knownB), d: pctDelta(knownA, knownB) },
         ].map((m) => (
@@ -1817,12 +2146,11 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
         ))}
       </div>
 
-
-
-
       <div className="info-banner">
         <i className="ti ti-info-circle" />
-        <p>Comparison is calculated on equivalent calendar weeks. Sector data sourced from 1,240 Brussels restaurants.</p>
+        <p>
+          Comparison is calculated on equivalent calendar weeks. Sector data sourced from 1,240 Brussels restaurants.
+        </p>
       </div>
     </>
   );
@@ -1878,7 +2206,11 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
     { tag: "H", color: "#4FC3D9", name: "CHU Saint-Pierre", visits: 115, spend: 1520, delta: 14 },
     { tag: "P", color: "#1ED760", name: "SPF Finance", visits: 98, spend: 1160, delta: -4 },
     { tag: "T", color: "#EF9F27", name: "Accenture", visits: 76, spend: 1440, delta: 22 },
-  ].map((e) => ({ ...e, visits: Math.max(1, Math.round(e.visits * storeMult)), spend: Math.round(e.spend * storeMult) }));
+  ].map((e) => ({
+    ...e,
+    visits: Math.max(1, Math.round(e.visits * storeMult)),
+    spend: Math.round(e.spend * storeMult),
+  }));
 
   const fmtSignedPct = (n: number) => `${n > 0 ? "+" : ""}${n}%`;
 
@@ -1890,25 +2222,37 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
           <p className="kpi-label">Unique employers</p>
           <p className="kpi-value">{uniqueEmployers}</p>
           <p className="kpi-caption">Brought you customers</p>
-          <p className="delta up" style={{ marginTop: 4 }}>↗ +{employersDelta} vs Q4</p>
+          <p className="delta up" style={{ marginTop: 4 }}>
+            ↗ +{employersDelta} vs Q4
+          </p>
         </div>
         <div className="kpi-card">
           <p className="kpi-label">Top segment</p>
           <p className="kpi-value">Finance</p>
-          <p className="kpi-caption">{segments[0].employers} employers · {segments[0].share}% of spend</p>
-          <p className="delta up" style={{ marginTop: 4 }}>↗ +7%</p>
+          <p className="kpi-caption">
+            {segments[0].employers} employers · {segments[0].share}% of spend
+          </p>
+          <p className="delta up" style={{ marginTop: 4 }}>
+            ↗ +7%
+          </p>
         </div>
         <div className="kpi-card highlight-success">
           <p className="kpi-label">Fastest growing</p>
           <p className="kpi-value text-success">Healthcare</p>
-          <p className="kpi-caption">{segments[2].employers} employers · {segments[2].share}% of spend</p>
-          <p className="delta up" style={{ marginTop: 4 }}>↗ +12%</p>
+          <p className="kpi-caption">
+            {segments[2].employers} employers · {segments[2].share}% of spend
+          </p>
+          <p className="delta up" style={{ marginTop: 4 }}>
+            ↗ +12%
+          </p>
         </div>
         <div className="kpi-card">
           <p className="kpi-label">Avg spend per visit</p>
           <p className="kpi-value">{basket.toFixed(2)} EUR</p>
           <p className="kpi-caption">Across all segments</p>
-          <p className="delta up" style={{ marginTop: 4 }}>↗ +{basketDelta.toFixed(0)}%</p>
+          <p className="delta up" style={{ marginTop: 4 }}>
+            ↗ +{basketDelta.toFixed(0)}%
+          </p>
         </div>
       </div>
 
@@ -1917,7 +2261,9 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
         <div className="cmp-card-header">
           <div>
             <p className="cmp-card-title">Spend by employer segment</p>
-            <p className="cmp-card-subtitle">Share of your Pluxee revenue · {month === "All months" ? year : `${month} ${year}`}</p>
+            <p className="cmp-card-subtitle">
+              Share of your Pluxee revenue · {month === "All months" ? year : `${month} ${year}`}
+            </p>
           </div>
         </div>
         <div className="seg-donut-layout">
@@ -1937,8 +2283,27 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
                 transform="rotate(-90 100 100)"
               />
             ))}
-            <text x="100" y="95" textAnchor="middle" fontSize="11" fill="var(--text-secondary)" fontFamily="Inter,sans-serif">Total spend</text>
-            <text x="100" y="115" textAnchor="middle" fontSize="16" fontWeight="600" fill="var(--navy)" fontFamily="Inter,sans-serif">{fmtEUR(totalSpend)}</text>
+            <text
+              x="100"
+              y="95"
+              textAnchor="middle"
+              fontSize="11"
+              fill="var(--text-secondary)"
+              fontFamily="Inter,sans-serif"
+            >
+              Total spend
+            </text>
+            <text
+              x="100"
+              y="115"
+              textAnchor="middle"
+              fontSize="16"
+              fontWeight="600"
+              fill="var(--navy)"
+              fontFamily="Inter,sans-serif"
+            >
+              {fmtEUR(totalSpend)}
+            </text>
           </svg>
           <div className="seg-list">
             {segments.map((s, i) => (
@@ -1946,11 +2311,15 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
                 <span className="seg-dot" style={{ background: s.color }} />
                 <div className="seg-body">
                   <p className="seg-name">{s.name}</p>
-                  <p className="seg-caption">{s.employers} employers · avg {s.basket.toFixed(2)} EUR / visit</p>
+                  <p className="seg-caption">
+                    {s.employers} employers · avg {s.basket.toFixed(2)} EUR / visit
+                  </p>
                 </div>
                 <div className="seg-metric">
                   <p className="seg-share">{s.share}%</p>
-                  <p className={`seg-delta ${s.delta > 1 ? "up" : s.delta < -1 ? "down" : "flat"}`}>{fmtSignedPct(s.delta)}</p>
+                  <p className={`seg-delta ${s.delta > 1 ? "up" : s.delta < -1 ? "down" : "flat"}`}>
+                    {fmtSignedPct(s.delta)}
+                  </p>
                 </div>
               </div>
             ))}
@@ -1962,15 +2331,21 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
       <div className="cmp-two-col">
         <div className="cmp-card">
           <div className="section-title" style={{ marginBottom: 12 }}>
-            <i className="ti ti-building-bank" />Top employers
+            <i className="ti ti-building-bank" />
+            Top employers
           </div>
           <div className="emp-row emp-header">
-            <span>Employer</span><span>Visits</span><span>Spend</span><span style={{ textAlign: "right" }}>vs Q4</span>
+            <span>Employer</span>
+            <span>Visits</span>
+            <span>Spend</span>
+            <span style={{ textAlign: "right" }}>vs Q4</span>
           </div>
           {employers.map((e, i) => (
             <div key={e.name} className={`emp-row${i === employers.length - 1 ? " last" : ""}`}>
               <div className="emp-name-wrap">
-                <span className="emp-tag" style={{ background: e.color }}>{e.tag}</span>
+                <span className="emp-tag" style={{ background: e.color }}>
+                  {e.tag}
+                </span>
                 <span className="emp-name">{e.name}</span>
               </div>
               <span>{e.visits}</span>
@@ -1982,16 +2357,31 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
 
         <div className="cmp-card">
           <div className="section-title" style={{ marginBottom: 12 }}>
-            <i className="ti ti-trending-up" />Segment momentum
+            <i className="ti ti-trending-up" />
+            Segment momentum
           </div>
           {[
-            { kind: "up", title: "Healthcare growing fastest", desc: "+12% spend, +3 new employers contributing. CHU Saint-Pierre alone added 14% this quarter." },
-            { kind: "down", title: "Public sector cooling", desc: "-3% spend across 20 employers. SPF Finance is the largest contributor to the decline." },
-            { kind: "flat", title: "Tech segment small but high value", desc: "14% of spend from only 10 employers. Highest average basket at 18.90 EUR. Worth nurturing." },
+            {
+              kind: "up",
+              title: "Healthcare growing fastest",
+              desc: "+12% spend, +3 new employers contributing. CHU Saint-Pierre alone added 14% this quarter.",
+            },
+            {
+              kind: "down",
+              title: "Public sector cooling",
+              desc: "-3% spend across 20 employers. SPF Finance is the largest contributor to the decline.",
+            },
+            {
+              kind: "flat",
+              title: "Tech segment small but high value",
+              desc: "14% of spend from only 10 employers. Highest average basket at 18.90 EUR. Worth nurturing.",
+            },
           ].map((m, i, arr) => (
             <div key={m.title} className={`mom-row${i === arr.length - 1 ? " last" : ""}`}>
               <div className={`mom-icon ${m.kind}`}>
-                <i className={`ti ${m.kind === "up" ? "ti-arrow-up-right" : m.kind === "down" ? "ti-arrow-down-right" : "ti-equal"}`} />
+                <i
+                  className={`ti ${m.kind === "up" ? "ti-arrow-up-right" : m.kind === "down" ? "ti-arrow-down-right" : "ti-equal"}`}
+                />
               </div>
               <div>
                 <p className="mom-title">{m.title}</p>
@@ -2004,10 +2394,16 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
 
       {/* Insight */}
       <div className="insight-card">
-        <div className="insight-icon"><i className="ti ti-bulb" /></div>
+        <div className="insight-icon">
+          <i className="ti ti-bulb" />
+        </div>
         <div>
           <p className="insight-title">Healthcare is your growth opportunity</p>
-          <p className="insight-desc">Three healthcare employers contribute 16% of your revenue and grew 12% this quarter. CHU Saint-Pierre is 400m from your store with 1,100 employees. Consider a tailored lunch offer or visible Pluxee signage to capture more of this segment.</p>
+          <p className="insight-desc">
+            Three healthcare employers contribute 16% of your revenue and grew 12% this quarter. CHU Saint-Pierre is
+            400m from your store with 1,100 employees. Consider a tailored lunch offer or visible Pluxee signage to
+            capture more of this segment.
+          </p>
         </div>
       </div>
 
@@ -2039,19 +2435,18 @@ function ReportsTab({ store }: { store: Store }) {
   });
   const [email, setEmail] = useState("accountant@letournant.be");
 
-  const toggle = (k: keyof typeof sections) =>
-    setSections((s) => ({ ...s, [k]: !s[k] }));
+  const toggle = (k: keyof typeof sections) => setSections((s) => ({ ...s, [k]: !s[k] }));
 
   const periodRange =
     period === "This month"
       ? { from: "1 Jun 2026", to: "25 Jun 2026" }
       : period === "Last month"
-      ? { from: "1 May 2026", to: "31 May 2026" }
-      : period === "This quarter"
-      ? { from: "1 Apr 2026", to: "25 Jun 2026" }
-      : period === "Last 12 months"
-      ? { from: "25 Jun 2025", to: "25 Jun 2026" }
-      : { from: "1 Jan 2026", to: "31 Mar 2026" };
+        ? { from: "1 May 2026", to: "31 May 2026" }
+        : period === "This quarter"
+          ? { from: "1 Apr 2026", to: "25 Jun 2026" }
+          : period === "Last 12 months"
+            ? { from: "25 Jun 2025", to: "25 Jun 2026" }
+            : { from: "1 Jan 2026", to: "31 Mar 2026" };
 
   const storeLabel = store === "All stores" ? "Le Tournant" : `Le Tournant · ${store}`;
 
@@ -2070,11 +2465,7 @@ function ReportsTab({ store }: { store: Store }) {
               <p className="builder-label">Period</p>
               <div className="period-chips">
                 {REPORT_PERIODS.map((p) => (
-                  <button
-                    key={p}
-                    className={`chip ${period === p ? "active" : ""}`}
-                    onClick={() => setPeriod(p)}
-                  >
+                  <button key={p} className={`chip ${period === p ? "active" : ""}`} onClick={() => setPeriod(p)}>
                     {p}
                   </button>
                 ))}
@@ -2112,11 +2503,26 @@ function ReportsTab({ store }: { store: Store }) {
             <div className="builder-section">
               <p className="builder-label">Include in report</p>
               {[
-                { k: "revenue" as const, name: "Revenue and transactions", desc: "Sales flow, totals, transaction counts" },
+                {
+                  k: "revenue" as const,
+                  name: "Revenue and transactions",
+                  desc: "Sales flow, totals, transaction counts",
+                },
                 { k: "consumer" as const, name: "Consumer metrics", desc: "New and known clients, average basket" },
                 { k: "employer" as const, name: "Top employer segments", desc: "Who your Pluxee customers work for" },
-                { k: "benchmark" as const, name: "Sector benchmark", desc: "Your performance vs Brussels restaurants", badge: true },
-                { k: "forecast" as const, name: "Revenue forecast", desc: "8-week projection with confidence range", badge: true, last: true },
+                {
+                  k: "benchmark" as const,
+                  name: "Sector benchmark",
+                  desc: "Your performance vs Brussels restaurants",
+                  badge: true,
+                },
+                {
+                  k: "forecast" as const,
+                  name: "Revenue forecast",
+                  desc: "8-week projection with confidence range",
+                  badge: true,
+                  last: true,
+                },
               ].map((row) => (
                 <div key={row.k} className={`toggle-row${row.last ? " last" : ""}`}>
                   <div className="toggle-body">
@@ -2161,12 +2567,7 @@ function ReportsTab({ store }: { store: Store }) {
                     <option>Weekly · Monday</option>
                     <option>Quarterly</option>
                   </select>
-                  <input
-                    type="text"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="email-input"
-                  />
+                  <input type="text" value={email} onChange={(e) => setEmail(e.target.value)} className="email-input" />
                 </div>
               )}
             </div>
@@ -2195,8 +2596,12 @@ function ReportsTab({ store }: { store: Store }) {
               <div className="preview-header">
                 <div className="preview-logo">P</div>
                 <div>
-                  <p className="preview-title">{storeLabel} · {period}</p>
-                  <p className="preview-subtitle">{periodRange.from} – {periodRange.to}</p>
+                  <p className="preview-title">
+                    {storeLabel} · {period}
+                  </p>
+                  <p className="preview-subtitle">
+                    {periodRange.from} – {periodRange.to}
+                  </p>
                 </div>
               </div>
               {sections.revenue && (
@@ -2213,9 +2618,18 @@ function ReportsTab({ store }: { store: Store }) {
                 <div className="preview-section">
                   <p className="preview-section-title">Consumer metrics</p>
                   <div className="preview-kpi-row">
-                    <div className="preview-kpi"><div className="preview-kpi-val">45</div><div className="preview-kpi-lbl">New</div></div>
-                    <div className="preview-kpi"><div className="preview-kpi-val">145</div><div className="preview-kpi-lbl">Known</div></div>
-                    <div className="preview-kpi"><div className="preview-kpi-val">15€</div><div className="preview-kpi-lbl">Basket</div></div>
+                    <div className="preview-kpi">
+                      <div className="preview-kpi-val">45</div>
+                      <div className="preview-kpi-lbl">New</div>
+                    </div>
+                    <div className="preview-kpi">
+                      <div className="preview-kpi-val">145</div>
+                      <div className="preview-kpi-lbl">Known</div>
+                    </div>
+                    <div className="preview-kpi">
+                      <div className="preview-kpi-val">15€</div>
+                      <div className="preview-kpi-lbl">Basket</div>
+                    </div>
                   </div>
                 </div>
               )}
@@ -2227,9 +2641,7 @@ function ReportsTab({ store }: { store: Store }) {
                   <div className="preview-line" />
                 </div>
               )}
-              <div className="preview-pages">
-                Page 1 of {Object.values(sections).filter(Boolean).length + 1}
-              </div>
+              <div className="preview-pages">Page 1 of {Object.values(sections).filter(Boolean).length + 1}</div>
             </div>
           </div>
 
@@ -2241,10 +2653,17 @@ function ReportsTab({ store }: { store: Store }) {
             {[
               { icon: "ti-file-type-pdf", name: `${storeLabel} · Q4 2025`, meta: "PDF · 412 KB · 8 Jan 2026" },
               { icon: "ti-file-type-xls", name: `${storeLabel} · December 2025`, meta: "Excel · 86 KB · 2 Jan 2026" },
-              { icon: "ti-file-type-pdf", name: `${storeLabel} · November 2025`, meta: "PDF · 388 KB · 1 Dec 2025", last: true },
+              {
+                icon: "ti-file-type-pdf",
+                name: `${storeLabel} · November 2025`,
+                meta: "PDF · 388 KB · 1 Dec 2025",
+                last: true,
+              },
             ].map((h, i) => (
               <div key={i} className={`history-row${h.last ? " last" : ""}`}>
-                <div className="history-icon"><i className={`ti ${h.icon}`} /></div>
+                <div className="history-icon">
+                  <i className={`ti ${h.icon}`} />
+                </div>
                 <div className="history-body">
                   <p className="history-name">{h.name}</p>
                   <p className="history-meta">{h.meta}</p>
@@ -2261,7 +2680,8 @@ function ReportsTab({ store }: { store: Store }) {
       <div className="info-banner" style={{ marginTop: 16 }}>
         <i className="ti ti-info-circle" />
         <p>
-          Reports are generated on demand and include the data available at export time. Scheduled exports are sent on the morning of the chosen day.
+          Reports are generated on demand and include the data available at export time. Scheduled exports are sent on
+          the morning of the chosen day.
         </p>
       </div>
     </>
@@ -2754,42 +3174,60 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
           <div className="promo-card">
             <div className="promo-img">
               <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="12" y="10" width="36" height="40" rx="4" stroke="#1A1D3B" strokeWidth="1.5"/>
-                <line x1="19" y1="22" x2="41" y2="22" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="19" y1="30" x2="41" y2="30" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
-                <line x1="19" y1="38" x2="32" y2="38" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
-                <circle cx="44" cy="44" r="8" fill="#1ED760"/>
-                <path d="M41 44 L43.5 46.5 L47 42" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <rect x="12" y="10" width="36" height="40" rx="4" stroke="#1A1D3B" strokeWidth="1.5" />
+                <line x1="19" y1="22" x2="41" y2="22" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="19" y1="30" x2="41" y2="30" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round" />
+                <line x1="19" y1="38" x2="32" y2="38" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round" />
+                <circle cx="44" cy="44" r="8" fill="#1ED760" />
+                <path
+                  d="M41 44 L43.5 46.5 L47 42"
+                  stroke="#1A1D3B"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
               </svg>
             </div>
             <div className="promo-body">
               <p className="promo-title">Your billings are ready</p>
-              <p className="promo-desc">Review your latest Pluxee transactions and reconcile your payouts for this period.</p>
-              <a href="#" className="promo-link">Check transactions <i className="ti ti-arrow-right" /></a>
+              <p className="promo-desc">
+                Review your latest Pluxee transactions and reconcile your payouts for this period.
+              </p>
+              <a href="#" className="promo-link">
+                Check transactions <i className="ti ti-arrow-right" />
+              </a>
             </div>
           </div>
 
           <div className="promo-card highlighted">
             <div className="promo-img">
               <svg viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="30" cy="30" r="18" stroke="#1A1D3B" strokeWidth="1.5"/>
-                <path d="M22 30 Q30 18 38 30 Q30 42 22 30Z" stroke="#1A1D3B" strokeWidth="1.5" fill="#EFFBF3"/>
-                <circle cx="30" cy="30" r="4" fill="#1ED760"/>
-                <path d="M30 12 L30 8" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M48 30 L52 30" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
-                <path d="M43.5 16.5 L46.5 13.5" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="30" cy="30" r="18" stroke="#1A1D3B" strokeWidth="1.5" />
+                <path d="M22 30 Q30 18 38 30 Q30 42 22 30Z" stroke="#1A1D3B" strokeWidth="1.5" fill="#EFFBF3" />
+                <circle cx="30" cy="30" r="4" fill="#1ED760" />
+                <path d="M30 12 L30 8" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M48 30 L52 30" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round" />
+                <path d="M43.5 16.5 L46.5 13.5" stroke="#1A1D3B" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
             <div className="promo-body">
               <p className="promo-title">Reach more customers</p>
-              <p className="promo-desc">Promote your store to Pluxee users nearby with targeted push notifications and campaigns.</p>
-              <a href="#" className="promo-link">Discover Marketing solutions <i className="ti ti-arrow-right" /></a>
+              <p className="promo-desc">
+                Promote your store to Pluxee users nearby with targeted push notifications and campaigns.
+              </p>
+              <a href="#" className="promo-link">
+                Discover Marketing solutions <i className="ti ti-arrow-right" />
+              </a>
             </div>
           </div>
         </div>
         <div className="carousel-nav">
-          <button className="carousel-btn"><i className="ti ti-chevron-left" /></button>
-          <button className="carousel-btn"><i className="ti ti-chevron-right" /></button>
+          <button className="carousel-btn">
+            <i className="ti ti-chevron-left" />
+          </button>
+          <button className="carousel-btn">
+            <i className="ti ti-chevron-right" />
+          </button>
         </div>
       </div>
 
@@ -2807,7 +3245,6 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
             View full dashboard
             <i className="ti ti-arrow-right" />
           </button>
-
         </div>
 
         <div className="recap-revenue-row">
@@ -2831,13 +3268,22 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
             <svg viewBox="0 0 160 32" style={{ width: "100%", height: 32, marginTop: 6 }} aria-hidden="true">
               <defs>
                 <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#1ED760" stopOpacity="0.3"/>
-                  <stop offset="100%" stopColor="#1ED760" stopOpacity="0"/>
+                  <stop offset="0%" stopColor="#1ED760" stopOpacity="0.3" />
+                  <stop offset="100%" stopColor="#1ED760" stopOpacity="0" />
                 </linearGradient>
               </defs>
-              <path fill="url(#sparkFill)" d="M0,22 C10,22 15,18 28,18 C41,18 45,24 58,20 C71,16 76,10 90,10 C104,10 108,16 120,13 C132,10 145,4 160,4 L160,32 L0,32 Z"/>
-              <path fill="none" stroke="#1ED760" strokeWidth="1.8" strokeLinecap="round" d="M0,22 C10,22 15,18 28,18 C41,18 45,24 58,20 C71,16 76,10 90,10 C104,10 108,16 120,13 C132,10 145,4 160,4"/>
-              <circle cx="160" cy="4" r="3" fill="#1ED760"/>
+              <path
+                fill="url(#sparkFill)"
+                d="M0,22 C10,22 15,18 28,18 C41,18 45,24 58,20 C71,16 76,10 90,10 C104,10 108,16 120,13 C132,10 145,4 160,4 L160,32 L0,32 Z"
+              />
+              <path
+                fill="none"
+                stroke="#1ED760"
+                strokeWidth="1.8"
+                strokeLinecap="round"
+                d="M0,22 C10,22 15,18 28,18 C41,18 45,24 58,20 C71,16 76,10 90,10 C104,10 108,16 120,13 C132,10 145,4 160,4"
+              />
+              <circle cx="160" cy="4" r="3" fill="#1ED760" />
             </svg>
           </div>
           <div className="stat-cell">
@@ -2872,17 +3318,17 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
           </div>
           <div className="insight-body">
             <p className="insight-title">Budget load week starts Monday</p>
-            <p className="insight-desc">Top employers in your area typically load meal vouchers next week. Expect +20-30% footfall. Make sure stock and staff are ready.</p>
+            <p className="insight-desc">
+              Top employers in your area typically load meal vouchers next week. Expect +20-30% footfall. Make sure
+              stock and staff are ready.
+            </p>
           </div>
           <button type="button" onClick={onOpenForecast} className="insight-action">
             Open forecast
             <i className="ti ti-arrow-right" />
           </button>
-
         </div>
-
       </div>
     </div>
   );
 }
-
