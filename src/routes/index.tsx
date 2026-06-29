@@ -994,6 +994,8 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
   const pointsMine = trend.map((t, i) => `${xAt(i)},${yAt(t.mine)}`).join(" ");
   const pointsSector = trend.map((t, i) => `${xAt(i)},${yAt(t.sector)}`).join(" ");
 
+  const [hover, setHover] = useState<number | null>(null);
+
   const sign = (n: number) => (n > 0 ? `+${n}%` : `${n}%`);
   const deltaCls = (n: number) => (n > 0 ? "up" : n < 0 ? "down" : "flat");
 
@@ -1059,7 +1061,7 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
         <div className="section-subtle">Your store vs sector average · 4 quarters rolling</div>
 
         <div className="chart-area" style={{ marginTop: 12 }}>
-          <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: 220 }} role="img" aria-label="Voucher volume trend">
+          <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: 220 }} role="img" aria-label="Voucher volume trend" onMouseLeave={() => setHover(null)}>
             <g stroke="rgba(26,31,60,0.08)" strokeWidth="0.5">
               {ticks.map((_, i) => {
                 const y = topY + (usableH * i) / 3;
@@ -1090,6 +1092,62 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
                 <text key={t.label} x={xAt(i)} y={baseY + 22}>{t.label}</text>
               ))}
             </g>
+
+            {/* Invisible hit areas */}
+            {trend.map((_, i) => {
+              const cx = xAt(i);
+              const step = innerW / (trend.length - 1);
+              const hw = Math.max(24, step * 0.9);
+              return (
+                <rect
+                  key={`hit${i}`}
+                  x={cx - hw / 2}
+                  y={topY}
+                  width={hw}
+                  height={baseY - topY}
+                  fill="transparent"
+                  onMouseEnter={() => setHover(i)}
+                />
+              );
+            })}
+
+            {/* Hover tooltip */}
+            {hover !== null && trend[hover] && (() => {
+              const t = trend[hover];
+              const cx = xAt(hover);
+              const yMine = yAt(t.mine);
+              const ySector = yAt(t.sector);
+              const topPt = Math.min(yMine, ySector);
+              const line1 = `You ${t.mine}`;
+              const line2 = `Sector ${t.sector}`;
+              const tw = Math.max(110, (Math.max(line1.length, line2.length)) * 7 + 24);
+              const th = 44;
+              const tipH = 6;
+              const ty = Math.max(2, topPt - tipH - th - 4);
+              const tx = Math.min(Math.max(cx - tw / 2, 2), chartW - tw - 2);
+              const triBaseY = ty + th;
+              const triCx = Math.min(Math.max(cx, tx + 12), tx + tw - 12);
+              return (
+                <g pointerEvents="none">
+                  <rect x={tx + 3} y={ty + 4} width={tw} height={th} rx={4} fill="rgba(26,31,60,0.18)" />
+                  <polygon
+                    points={`${triCx - 6 + 3},${triBaseY + 4} ${triCx + 6 + 3},${triBaseY + 4} ${triCx + 3},${triBaseY + tipH + 4}`}
+                    fill="rgba(26,31,60,0.18)"
+                  />
+                  <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="var(--navy)" />
+                  <polygon
+                    points={`${triCx - 6},${triBaseY} ${triCx + 6},${triBaseY} ${triCx},${triBaseY + tipH}`}
+                    fill="var(--navy)"
+                  />
+                  <text x={tx + 12} y={ty + 18} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
+                    <tspan fill="#C7EBF7">You </tspan>{t.mine}
+                  </text>
+                  <text x={tx + 12} y={ty + 34} fontSize="12" fontWeight="600" fill="#FFFFFF" fontFamily="Inter, sans-serif">
+                    <tspan fill="#E8A8A8">Sector </tspan>{t.sector}
+                  </text>
+                </g>
+              );
+            })()}
 
             {/* Outperform badge near last point */}
             {(() => {
