@@ -1486,6 +1486,20 @@ function ForecastTab({ year, month, store }: { year: string; month: string; stor
         </svg>
       </div>
 
+      {/* Cross-sell banner */}
+      <div className="cross-sell-banner">
+        <div className="cross-sell-text">
+          <p className="cross-sell-title">Turn your sales data into more customers</p>
+          <p className="cross-sell-body">
+            You processed {fmtEUR(Math.round(r(7, 120000, 200000) * storeMult))} via Pluxee this year. Merchants using Pluxee Ads report an average uplift of 10% in monthly transactions. Set up your first ad in minutes.
+          </p>
+        </div>
+        <button type="button" className="cross-sell-cta">
+          Create my ad or promotion
+          <i className="ti ti-arrow-right" />
+        </button>
+      </div>
+
 
 
       {/* Signals + Scenarios */}
