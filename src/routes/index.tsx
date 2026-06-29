@@ -83,8 +83,8 @@ function Dropdown<T extends string>({
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Codename SmartView – Business Insights" },
-      { name: "description", content: "Codename merchant analytics dashboard." },
+      { title: "Pluxee SmartView – Business Insights" },
+      { name: "description", content: "Pluxee merchant analytics dashboard." },
     ],
   }),
   component: Dashboard,
@@ -465,7 +465,7 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
       <div className="section">
         <div className="section-title">
           Codename sales over time
-          <InfoTip text="This shows the total sales made with Codename products for the period you have selected. The chart helps you see how your performance evolves. You can use the filter at the top to focus on a specific product or period." />
+          <InfoTip text="This shows the total sales made with Pluxee products for the period you have selected. The chart helps you see how your performance evolves. You can use the filter at the top to focus on a specific product or period." />
         </div>
         <div className="section-big-number">{fmtEUR(data.total)}</div>
 
@@ -474,7 +474,7 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
             viewBox={`0 0 ${chartW} ${chartH}`}
             style={{ width: "100%", height: 200 }}
             role="img"
-            aria-label="Bar chart of Codename sales"
+            aria-label="Bar chart of Pluxee sales"
             onMouseLeave={() => setHover(null)}
           >
             <g stroke="rgba(26,31,60,0.08)" strokeWidth="0.5">
@@ -594,7 +594,7 @@ function SalesTab({ year, month, product, store, onDiscoverSegments }: { year: Y
       <div className="section">
         <div className="section-title" style={{ marginBottom: 16 }}>
           Top employer clients
-          <InfoTip text="These are the three employers most represented among your Codename customers. This allows you to understand where your sales come from and identify potential partnerships." />
+          <InfoTip text="These are the three employers most represented among your Pluxee customers. This allows you to understand where your sales come from and identify potential partnerships." />
         </div>
         <div className="employer-grid">
           {data.employers.map((e) => (
@@ -1917,7 +1917,7 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
         <div className="cmp-card-header">
           <div>
             <p className="cmp-card-title">Spend by employer segment</p>
-            <p className="cmp-card-subtitle">Share of your Codename revenue · {month === "All months" ? year : `${month} ${year}`}</p>
+            <p className="cmp-card-subtitle">Share of your Pluxee revenue · {month === "All months" ? year : `${month} ${year}`}</p>
           </div>
         </div>
         <div className="seg-donut-layout">
@@ -2007,7 +2007,7 @@ function SegmentsTab({ year, month, store }: { year: Year; month: Month; store: 
         <div className="insight-icon"><i className="ti ti-bulb" /></div>
         <div>
           <p className="insight-title">Healthcare is your growth opportunity</p>
-          <p className="insight-desc">Three healthcare employers contribute 16% of your revenue and grew 12% this quarter. CHU Saint-Pierre is 400m from your store with 1,100 employees. Consider a tailored lunch offer or visible Codename signage to capture more of this segment.</p>
+          <p className="insight-desc">Three healthcare employers contribute 16% of your revenue and grew 12% this quarter. CHU Saint-Pierre is 400m from your store with 1,100 employees. Consider a tailored lunch offer or visible Pluxee signage to capture more of this segment.</p>
         </div>
       </div>
 
@@ -2114,7 +2114,7 @@ function ReportsTab({ store }: { store: Store }) {
               {[
                 { k: "revenue" as const, name: "Revenue and transactions", desc: "Sales flow, totals, transaction counts" },
                 { k: "consumer" as const, name: "Consumer metrics", desc: "New and known clients, average basket" },
-                { k: "employer" as const, name: "Top employer segments", desc: "Who your Codename customers work for" },
+                { k: "employer" as const, name: "Top employer segments", desc: "Who your Pluxee customers work for" },
                 { k: "benchmark" as const, name: "Sector benchmark", desc: "Your performance vs Brussels restaurants", badge: true },
                 { k: "forecast" as const, name: "Revenue forecast", desc: "8-week projection with confidence range", badge: true, last: true },
               ].map((row) => (
@@ -2764,7 +2764,7 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
             </div>
             <div className="promo-body">
               <p className="promo-title">Your billings are ready</p>
-              <p className="promo-desc">Review your latest Codename transactions and reconcile your payouts for this period.</p>
+              <p className="promo-desc">Review your latest Pluxee transactions and reconcile your payouts for this period.</p>
               <a href="#" className="promo-link">Check transactions <i className="ti ti-arrow-right" /></a>
             </div>
           </div>
@@ -2782,7 +2782,7 @@ function HomeTab({ onViewDashboard, onOpenForecast }: { onViewDashboard: () => v
             </div>
             <div className="promo-body">
               <p className="promo-title">Reach more customers</p>
-              <p className="promo-desc">Promote your store to Codename users nearby with targeted push notifications and campaigns.</p>
+              <p className="promo-desc">Promote your store to Pluxee users nearby with targeted push notifications and campaigns.</p>
               <a href="#" className="promo-link">Discover Marketing solutions <i className="ti ti-arrow-right" /></a>
             </div>
           </div>
