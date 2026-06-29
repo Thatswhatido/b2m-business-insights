@@ -1672,7 +1672,7 @@ function ComparisonTab({ year, month, store }: { year: string; month: string; st
       </div>
 
       {/* KPIs */}
-      <div className="kpi-grid-4">
+      <div className="kpi-grid-3">
         <div className="kpi-card">
           <p className="kpi-label">Period A total</p>
           <p className="kpi-value">{fmtEUR(revA)}</p>
