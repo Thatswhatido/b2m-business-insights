@@ -1061,7 +1061,7 @@ function SectorHealthTab({ year, month, product }: { year: Year; month: Month; p
         <div className="section-subtle">Your store vs sector average · 4 quarters rolling</div>
 
         <div className="chart-area" style={{ marginTop: 12 }}>
-          <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: 220 }} role="img" aria-label="Voucher volume trend">
+          <svg viewBox={`0 0 ${chartW} ${chartH}`} style={{ width: "100%", height: 220 }} role="img" aria-label="Voucher volume trend" onMouseLeave={() => setHover(null)}>
             <g stroke="rgba(26,31,60,0.08)" strokeWidth="0.5">
               {ticks.map((_, i) => {
                 const y = topY + (usableH * i) / 3;
