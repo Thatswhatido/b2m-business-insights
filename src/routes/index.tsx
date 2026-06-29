@@ -2730,6 +2730,11 @@ function HomeTab({ onViewDashboard, onOpenForecast, onDiscoverSegments }: { onVi
           </button>
 
         </div>
+
+        <button type="button" onClick={onDiscoverSegments} className="discover-cta">
+          <span className="discover-cta-text">Discover more</span>
+          <i className="ti ti-arrow-right" />
+        </button>
       </div>
     </div>
   );
