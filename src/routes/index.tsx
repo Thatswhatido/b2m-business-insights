@@ -84,7 +84,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Dashboard – Business Insights" },
-      { name: "description", content: "Pluxee merchant analytics dashboard." },
+      { name: "description", content: "Merchant analytics dashboard." },
     ],
   }),
   component: Dashboard,
